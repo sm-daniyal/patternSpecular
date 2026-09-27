@@ -1,0 +1,25 @@
+name: pattern-specular
+
+services:
+  postgres:
+    image: postgres:16
+    container_name: pattern-specular-postgres
+    environment:
+      POSTGRES_USER: specular
+      POSTGRES_PASSWORD: specular
+      POSTGRES_DB: pattern_specular
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      # Init scripts run once, on first boot of an empty data volume. This is
+      # where the isolated test database is provisioned alongside the dev one.
+      - ./postgres-init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U specular -d pattern_specular"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  pgdata:

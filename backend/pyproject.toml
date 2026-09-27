@@ -1,0 +1,39 @@
+[project]
+name = "pattern-specular"
+version = "0.1.0"
+requires-python = ">=3.12"
+dependencies = [
+    "alembic>=1.14",
+    "fastapi>=0.115",
+    "google-genai>=1.0",
+    "instructor>=1.7",
+    "langgraph>=0.2",
+    "psycopg[binary]>=3.2",
+    "pydantic-settings>=2.14",
+    "python-dotenv>=1.0",
+    "scipy>=1.14",
+    "spacy>=3.8,<3.9",
+    "sqlalchemy>=2.0",
+    "structlog>=24.0",
+    "uvicorn[standard]>=0.30"
+]
+
+[dependency-groups]
+dev = [
+    "httpx",
+    "mypy",
+    "pytest",
+    "pytest-cov",
+    "ruff"
+]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.mypy]
+strict = true
+
+[[tool.uv.sources]]
+name = "en-core-web-sm"
+url = "https://github.com/explosion/spacy-models/releases/download/en_core_web_sm-3.8.0/en_core_web_sm-3.8.0-py3-none-any.whl"

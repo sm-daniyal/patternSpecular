@@ -1,0 +1,116 @@
+"""Prime the demo: run the real engine over the seeded submitted documents and persist their
+flags and drift findings, so reopening a published demo document re-hydrates real analysis (#130).
+
+Run on demand (``python -m pattern_specular.jobs.seed_demo_analysis``) after ``seed_demo``. With an
+Anthropic key configured it makes real calls — the full pipeline, so the contextual flags that
+carry the demo's gendered pattern ("polished", "collaborative") surface alongside the dictionary
+hits, plus drift coverage. With no key it persists the deterministic dictionary pass only. Never
+part of CI (it can make real calls, like ``calibrate``).
+
+Idempotent by construction: it analyses only documents that have no analysis run yet. A document a
+manager submitted live already has runs (they fire while editing), so it is skipped; the seeded
+demo documents have none, so they are the ones primed. A re-run is a no-op.
+"""
+
+import sys
+from collections import deque
+
+import structlog
+from sqlalchemy import select
+from sqlalchemy.orm import Session
+
+from pattern_specular.core.config import get_settings
+from pattern_specular.db.session import get_sessionmaker
+from pattern_specular.engine.llm_agent import StructuredCompletionClient, build_instructor_client
+from pattern_specular.models.documents import AnalysisRun, Document
+from pattern_specular.models.enums import AnalysisRunStatus, DocumentStatus
+from pattern_specular.services.drift_reference import resolve_drift_reference
+from pattern_specular.services.run_registry import get_run_registry
+from pattern_specular.services.streaming_analysis import stream_analysis_events
+
+_log = structlog.get_logger("pattern_specular.jobs.seed_demo_analysis")
+
+
+def _unanalysed_submitted_documents(session: Session) -> list[Document]:
+    """Submitted documents with no *complete* run — seeded demo docs and any that failed priming.
+
+    Keyed on the absence of a ``complete`` run, not any run at all, so a document whose only runs
+    failed (e.g. the Anthropic call errored mid-batch on a spent credit balance) is retried on the
+    next run rather than skipped forever. A document a manager submitted live already has a complete
+    run, so it is still skipped — priming stays idempotent.
+    """
+    has_complete_run = (
+        select(AnalysisRun.id)
+        .where(
+            AnalysisRun.document_id == Document.id,
+            AnalysisRun.status == AnalysisRunStatus.complete,
+        )
+        .exists()
+    )
+    return list(
+        session.scalars(
+            select(Document)
+            .where(Document.status == DocumentStatus.submitted, ~has_complete_run)
+            .order_by(Document.created_at)
+        )
+    )
+
+
+def seed_demo_analysis(
+    session: Session, *, client: StructuredCompletionClient | None = None
+) -> int:
+    """Analyse each un-analysed submitted document, persisting its flags and drift findings.
+
+    Reuses the exact streaming-submission path (``stream_analysis_events``), so a primed document is
+    indistinguishable from one submitted live: the same runs, flags, suppression, and drift rows.
+    ``client`` drives the LLM stages; None runs the deterministic dictionary-only path.
+
+    Returns the number of documents analysed.
+    """
+    registry = get_run_registry()
+    documents = _unanalysed_submitted_documents(session)
+    for document in documents:
+        content = document.submitted_content or document.content
+        drift_reference = resolve_drift_reference(session, document)
+        # Drain the generator to run it — each stage persists and commits internally.
+        deque(
+            stream_analysis_events(
+                session,
+                document_id=document.id,
+                content=content,
+                doc_type=document.doc_type,
+                registry=registry,
+                contextual_client=client,
+                judge_client=client,
+                recommendations_client=client,
+                drift_client=client if drift_reference is not None else None,
+                drift_reference=drift_reference,
+            ),
+            maxlen=0,
+        )
+        _log.info(
+            "demo.document_analysed",
+            document_id=str(document.id),
+            title=document.title,
+        )
+    return len(documents)
+
+
+def main() -> None:
+    # Demo titles carry em dashes (e.g. "Director — Markets"); a Windows cp1252 console cannot
+    # encode them, so structlog's per-document line would crash the run mid-way. Force UTF-8 first.
+    if hasattr(sys.stdout, "reconfigure"):
+        sys.stdout.reconfigure(encoding="utf-8")
+    settings = get_settings()
+    # Network-free to build; None when no key is configured, which runs dictionary-only.
+    client = build_instructor_client(settings)
+    if client is None:
+        _log.warning("demo.no_api_key_dictionary_only")
+    with get_sessionmaker()() as session:
+        count = seed_demo_analysis(session, client=client)
+        session.commit()
+    _log.info("demo.analysis_seeded", documents=count)
+
+
+if __name__ == "__main__":  # pragma: no cover
+    main()

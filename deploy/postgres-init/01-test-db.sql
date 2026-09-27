@@ -1,0 +1,1 @@
+CREATE DATABASE pattern_specular_test;

@@ -1,0 +1,35 @@
+# Python
+**/venv/
+**/__pycache__/
+*.pyc
+*.pyo
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+*.egg-info/
+dist/
+build/
+*.egg
+
+# Node
+**/node_modules/
+**/dist/
+**/.next/
+**/.nuxt/
+
+# Environment credentials (NEVER push .env)
+**/.env
+!**/.env.example
+
+# OS / Editor
+.DS_Store
+Thumbs.db
+.vscode/
+*.swp
+*.swo
+
+# Blobs / uploads
+**/blobs/
+
+# Alembic (keep versions but not pycache)
+**/alembic/__pycache__/
