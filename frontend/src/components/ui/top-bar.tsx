@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button'
 import { Chip } from '@/components/ui/chip'
 
 export interface TopBarProps extends HTMLAttributes<HTMLElement> {
-  /** Surface name shown after "Pattern Specular ·". @default "JD Studio" */
+  /** Surface name shown after "Pattern Mirror ·". @default "JD Studio" */
   surface?: string
   /** Context chips (subject, role/tier, scope). */
   chips?: string[]
@@ -43,7 +43,7 @@ export function TopBar({
         <img src={ubsLogo} alt="UBS" className="h-6 w-auto" />
         <span className="h-5 w-px bg-border" aria-hidden="true" />
         <span className="font-sans text-label text-ink-muted">
-          Pattern Specular · {surface}
+          Pattern Mirror · {surface}
         </span>
       </div>
       <div className="flex items-center gap-3">
