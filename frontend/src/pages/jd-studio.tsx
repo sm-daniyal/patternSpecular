@@ -1,8 +1,166 @@
+import { useMemo, useRef, useState } from 'react'
+import { useNavigate, useSearch } from '@tanstack/react-router'
+import {
+  CATEGORY_LABELS,
+  formatCitation,
+  sourceLabel,
+  type BiasCategory,
+  type CitedFlag,
+} from '@/lib/analyze-contract'
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { CategorySummary } from '@/components/ui/category-summary'
+import { FlagCard } from '@/components/ui/flag-card'
+import { JdCriteriaConfirm } from '@/components/ui/jd-criteria-confirm'
+import { Legend } from '@/components/ui/legend'
+import { SurfaceEditorPane } from '@/components/surface/surface-editor-pane'
+import type { SurfaceEditorHandle } from '@/components/surface/surface-editor'
+import { useDocumentSession } from '@/components/surface/use-document-session'
+import { useFlagInteractions } from '@/components/surface/use-flag-interactions'
+
+const SUBMIT_LABELS = {
+  idle: 'Publish JD',
+  submitting: 'Publishing…',
+  submitted: 'Published',
+  error: 'Publish JD',
+} as const
+
 export function JdStudio() {
+  // A document opened from My Documents (#69) arrives as ?doc=<id>; absent for a fresh draft.
+  const { doc } = useSearch({ strict: false })
+  const navigate = useNavigate()
+  const session = useDocumentSession('jd', doc)
+  const [flags, setFlags] = useState<CitedFlag[]>([])
+  // Publishing a JD confirms its drift criteria first (#122); the modal drafts them, the manager
+  // edits, and confirming persists the set and then submits the document.
+  const [confirmOpen, setConfirmOpen] = useState(false)
+  const editorRef = useRef<SurfaceEditorHandle>(null)
+  const { resolutions, accept, dismiss, undo } = useFlagInteractions()
+
+  // Apply writes the chosen phrasing into the document and logs the acceptance; marking the
+  // flag resolved clears its underline at once, while the re-scan the edit triggers drops it
+  // from the flag set.
+  function applyRecommendation(flag: CitedFlag, suggestion: string) {
+    editorRef.current?.applyRecommendation(flag, suggestion)
+    accept(flag.id, suggestion)
+  }
+
+  // Accepted flags drop out of the panel; dismissed ones stay, greyed with Undo.
+  const visibleFlags = useMemo(
+    () => flags.filter((flag) => resolutions.get(flag.id) !== 'accepted'),
+    [flags, resolutions],
+  )
+
+  // Accepted and dismissed flags both lose their inline underline the instant they're
+  // resolved, so an applied change never stays underlined while the re-scan runs.
+  const resolvedFlagIds = useMemo(
+    () => new Set(resolutions.keys()),
+    [resolutions],
+  )
+
+  const categoryItems = useMemo(() => {
+    const counts = new Map<BiasCategory, number>()
+    for (const flag of visibleFlags) {
+      counts.set(flag.category, (counts.get(flag.category) ?? 0) + 1)
+    }
+    return [...counts.entries()]
+      .map(([category, count]) => ({ label: CATEGORY_LABELS[category], count }))
+      .sort((a, b) => b.count - a.count)
+  }, [visibleFlags])
+
+  // Hold the editor's mount until any remembered draft is restored, so it initialises once
+  // with the restored text rather than flashing empty and overwriting it.
+  if (session.isLoading) {
+    return <main className="h-[calc(100vh-7rem)] bg-surface" />
+  }
+
+  const readOnly = session.isReadOnly
+  const submitted = session.submitState === 'submitted' || readOnly
+
   return (
-    <div className="p-8">
-      <h1 className="text-2xl font-semibold">JdStudio Placeholder</h1>
-      <p className="mt-4 text-subtle">Content coming soon.</p>
-    </div>
+    <main className="flex h-[calc(100vh-7rem)] flex-col bg-surface">
+      <div className="grid min-h-0 flex-1 grid-cols-[58%_42%]">
+        <SurfaceEditorPane
+          session={session}
+          editorRef={editorRef}
+          documentKindLabel="Job description"
+          titlePlaceholder="Untitled job description"
+          readOnly={readOnly}
+          submitted={submitted}
+          onFlagsChange={setFlags}
+          onApplyRecommendation={applyRecommendation}
+          onDismissFlag={(flag) => dismiss(flag.id)}
+          resolvedFlagIds={resolvedFlagIds}
+          onClose={() => navigate({ to: '/pattern-dashboard' })}
+        />
+
+        <aside className="overflow-auto bg-surface-alt p-5">
+          <CategorySummary items={categoryItems} />
+          <hr className="my-4 border-border" />
+          <div className="mb-1 flex items-center gap-2">
+            <h3 className="font-sans text-subheading font-semibold text-ink">
+              Bias flags
+            </h3>
+            <Badge tone="red">{visibleFlags.length}</Badge>
+          </div>
+          <div className="flex flex-col gap-3">
+            {visibleFlags.length === 0 && (
+              <p className="font-sans text-body-sm text-ink-muted">
+                Nothing flagged.
+              </p>
+            )}
+            {visibleFlags.map((flag) => (
+              <FlagCard
+                key={flag.id}
+                category={CATEGORY_LABELS[flag.category]}
+                source={sourceLabel(flag.source_stage)}
+                original={flag.raw_span}
+                explanation={flag.explanation}
+                citation={formatCitation(flag.citation)}
+                suggestions={flag.recommendations?.alternatives ?? []}
+                dismissed={resolutions.get(flag.id) === 'dismissed'}
+                onApply={(suggestion) => applyRecommendation(flag, suggestion)}
+                onDismiss={() => dismiss(flag.id)}
+                onUndo={() => undo(flag.id)}
+              />
+            ))}
+          </div>
+        </aside>
+      </div>
+
+      <footer className="flex items-center justify-between border-t border-border bg-surface px-6 py-3.5">
+        <Legend />
+        <div className="flex items-center gap-4">
+          <span className="font-sans text-meta text-ink-faint">
+            This is your own data — visible only to you.
+          </span>
+          <Button
+            variant="primary"
+            size="md"
+            onClick={() => setConfirmOpen(true)}
+            disabled={
+              !session.documentId ||
+              session.submitState === 'submitting' ||
+              submitted
+            }
+          >
+            {readOnly ? 'Published' : SUBMIT_LABELS[session.submitState]}
+          </Button>
+        </div>
+      </footer>
+
+      {session.documentId && (
+        <JdCriteriaConfirm
+          open={confirmOpen}
+          documentId={session.documentId}
+          content={session.content}
+          onClose={() => setConfirmOpen(false)}
+          onConfirmed={() => {
+            setConfirmOpen(false)
+            session.submit()
+          }}
+        />
+      )}
+    </main>
   )
 }
