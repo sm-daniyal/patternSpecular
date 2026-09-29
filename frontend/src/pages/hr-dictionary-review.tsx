@@ -1,8 +1,167 @@
+import { useState } from 'react'
+import { useQuery } from '@tanstack/react-query'
+import { Link, useSearch } from '@tanstack/react-router'
+import { cn } from '@/lib/cn'
+import { Button } from '@/components/ui/button'
+import { ReviewQueueRow } from '@/components/hr-portal/review-queue-row'
+import { ReviewCandidateModal } from '@/components/hr-portal/review-candidate-modal'
+import { DictionaryWordCloud } from '@/components/hr-portal/dictionary-word-cloud'
+import { getPendingAdditions } from '@/lib/growth-client'
+
+const PAGE_SIZE = 10
+
+type ReviewView = 'cloud' | 'list'
+
+/** The full HR dictionary review queue (#72): every pending addition, paginated, each opening into
+ *  a focused review of the four agents' reasoning and the citation. Reached from the HR Portal
+ *  "words to review" card; the monthly bulk review the agentic loop has pre-filtered (§4). */
 export function HrDictionaryReview() {
+  const search = useSearch({ strict: false }) as { addition?: string }
+  const additions = useQuery({
+    queryKey: ['growth', 'pending-additions'],
+    queryFn: getPendingAdditions,
+  })
+  const items = additions.data ?? []
+
+  const [page, setPage] = useState(0)
+  const [view, setView] = useState<ReviewView>('cloud')
+  const [selectedId, setSelectedId] = useState<string | null>(
+    search.addition ?? null,
+  )
+
+  const selected = items.find((addition) => addition.id === selectedId) ?? null
+  const pageCount = Math.max(1, Math.ceil(items.length / PAGE_SIZE))
+  const start = page * PAGE_SIZE
+  const visible = items.slice(start, start + PAGE_SIZE)
+
   return (
-    <div className="p-8">
-      <h1 className="text-2xl font-semibold">HrDictionaryReview Placeholder</h1>
-      <p className="mt-4 text-subtle">Content coming soon.</p>
+    <main className="overflow-auto bg-canvas px-10 py-9">
+      <div className="mx-auto max-w-3xl">
+        <Link
+          to="/hr-portal"
+          className="font-sans text-label font-semibold text-ink-muted hover:text-ink"
+        >
+          ← HR Portal
+        </Link>
+        <h1 className="mt-3 font-serif text-display font-bold text-ink">
+          Dictionary review queue
+        </h1>
+        <p className="mt-2.5 mb-7 font-sans text-body leading-relaxed text-ink-muted">
+          New bias-coded phrases the review agents flagged. Approve to add each
+          as a dictionary term, or reject and defer.
+        </p>
+
+        {additions.isError ? (
+          <div className="rounded-card bg-surface p-10 text-center shadow-ring-card">
+            <p className="font-sans text-body-sm text-ink-faint">
+              Couldn’t load the review queue. Try again.
+            </p>
+          </div>
+        ) : additions.isPending ? (
+          <p className="font-sans text-label text-ink-faint">Loading…</p>
+        ) : items.length === 0 ? (
+          <div className="rounded-card bg-surface p-10 text-center shadow-ring-card">
+            <p className="font-sans text-body-sm text-ink-faint">
+              The review queue is clear.
+            </p>
+          </div>
+        ) : (
+          <>
+            <ViewToggle view={view} onChange={setView} />
+
+            {view === 'cloud' ? (
+              <DictionaryWordCloud
+                additions={items}
+                onReview={(addition) => setSelectedId(addition.id)}
+              />
+            ) : (
+              <>
+                <div className="rounded-card bg-surface p-2 shadow-ring-card">
+                  {visible.map((addition, index) => (
+                    <div
+                      key={addition.id}
+                      className={index === 0 ? '' : 'border-t border-border'}
+                    >
+                      <ReviewQueueRow
+                        rank={start + index + 1}
+                        phrase={addition.phrase}
+                        category={addition.proposed_category}
+                        status={addition.status}
+                        onReview={() => setSelectedId(addition.id)}
+                      />
+                    </div>
+                  ))}
+                </div>
+
+                {pageCount > 1 && (
+                  <div className="mt-5 flex items-center gap-4">
+                    <Button
+                      variant="secondary"
+                      size="sm"
+                      onClick={() => setPage((current) => current - 1)}
+                      disabled={page === 0}
+                    >
+                      Previous
+                    </Button>
+                    <span className="font-sans text-label text-ink-muted">
+                      Page {page + 1} of {pageCount}
+                    </span>
+                    <Button
+                      variant="secondary"
+                      size="sm"
+                      onClick={() => setPage((current) => current + 1)}
+                      disabled={page >= pageCount - 1}
+                    >
+                      Next
+                    </Button>
+                  </div>
+                )}
+              </>
+            )}
+          </>
+        )}
+      </div>
+
+      {selected && (
+        <ReviewCandidateModal
+          addition={selected}
+          onClose={() => setSelectedId(null)}
+        />
+      )}
+    </main>
+  )
+}
+
+interface ViewToggleProps {
+  view: ReviewView
+  onChange: (view: ReviewView) => void
+}
+
+const VIEW_OPTIONS: { value: ReviewView; label: string }[] = [
+  { value: 'cloud', label: 'Cloud' },
+  { value: 'list', label: 'List' },
+]
+
+/** Segmented switch between the word-cloud and the paginated list view of the queue. */
+function ViewToggle({ view, onChange }: Readonly<ViewToggleProps>) {
+  return (
+    <div className="mb-5 inline-flex gap-1 rounded-pill bg-chip-track p-1">
+      {VIEW_OPTIONS.map((option) => (
+        <button
+          key={option.value}
+          type="button"
+          aria-pressed={view === option.value}
+          onClick={() => onChange(option.value)}
+          className={cn(
+            'rounded-pill px-4 py-1.5 font-sans text-label font-semibold transition-colors',
+            view === option.value
+              ? 'bg-surface text-ink shadow-ring-card'
+              : 'text-ink-muted hover:text-ink',
+          )}
+        >
+          {option.label}
+        </button>
+      ))}
     </div>
   )
 }

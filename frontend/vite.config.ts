@@ -15,6 +15,7 @@ export default defineConfig({
   // Forward API calls to the backend so the browser sees one origin (no CORS in dev).
   // One entry per backend path the frontend calls; add the next as endpoints land.
   server: {
+    open: true,
     proxy: {
       '/auth': 'http://localhost:8000',
       '/analyze': 'http://localhost:8000',
