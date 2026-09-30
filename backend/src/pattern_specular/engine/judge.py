@@ -1,6 +1,6 @@
 """Stage 4 of the engine: the LLM Judge, an Agent (Claude Haiku 4.5).
 
-N schema-enforced Anthropic calls (via Instructor), each answering a GDOR rubric for every
+N schema-enforced LLM calls (via Instructor), each answering a GDOR rubric for every
 verified contextual flag (ADR-0013). The Judge sees each flag's span with its surrounding
 document context; the Contextual Pass's explanation is withheld so the verdict is independent
 evidence. The model emits no confidence number: each sample's bias verdict is derived from its
@@ -174,11 +174,11 @@ def run_judge(
     """Judge the given flags over N self-consistency samples and return them with summed usage.
 
     Args:
-        client: An Instructor-wrapped Anthropic client (or a test fake).
+        client: An Instructor-wrapped LLM client (Gemini or a test fake).
         flags: The verified contextual flags to judge; their 1-based position is the flag_id.
         document_text: The source document, from which each flag's context window is cut.
         doc_type: The document's type, which sets the role context in the prompt.
-        model: The Anthropic model id (from config).
+        model: The model id (from config) (from config).
         samples: How many samples to draw, each with an independently shuffled flag order.
 
     Returns:
