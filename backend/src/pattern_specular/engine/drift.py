@@ -1,6 +1,6 @@
 """The drift check: an Agent (Claude Sonnet 4.6) that runs alongside the five-stage pipeline.
 
-One schema-enforced Anthropic call (via Instructor) comparing the document under analysis
+One schema-enforced LLM call (via Instructor) comparing the document under analysis
 against a swappable reference corpus — JD criteria for interview feedback, historical peer
 feedback for promotions. Architecturally one implementation, two corpora: only the reference
 text is swapped. The agent names which reference criteria the writing did
@@ -98,11 +98,11 @@ def run_drift(
     """Run the drift check over a document and reference corpus; return its findings + usage.
 
     Args:
-        client: An Instructor-wrapped Anthropic client (or a test fake).
+        client: An Instructor-wrapped LLM client (Gemini or a test fake).
         document_text: The document under analysis.
         doc_type: The document's type, which sets the role context in the prompt.
         reference_text: The swappable reference corpus (JD criteria or peer feedback).
-        model: The Anthropic model id (from config).
+        model: The model id (from config) (from config).
 
     Returns:
         The parsed result and the token/latency figures the audit log records.

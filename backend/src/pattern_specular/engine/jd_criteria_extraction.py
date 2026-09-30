@@ -1,6 +1,6 @@
 """The JD-criteria extractor: an Agent (Claude Sonnet 4.6) that drafts a role's criteria.
 
-One schema-enforced Anthropic call (via Instructor) that reads a job description and proposes
+One schema-enforced LLM call (via Instructor) that reads a job description and proposes
 the distinct criteria a candidate would be assessed against — the reference a feedback note's
 drift check is later measured against (#116). The draft is never authoritative on its own: the
 manager confirms or edits it before any row is persisted (#122), so this agent only proposes.
@@ -63,9 +63,9 @@ def run_jd_criteria_extraction(
     """Draft a JD's assessment criteria; return them plus the call's token/latency figures.
 
     Args:
-        client: An Instructor-wrapped Anthropic client (or a test fake).
+        client: An Instructor-wrapped LLM client (Gemini or a test fake).
         jd_text: The job description text to draft criteria from.
-        model: The Anthropic model id (from config).
+        model: The model id (from config) (from config).
 
     Returns:
         The parsed criteria and the token/latency figures the audit log records.
