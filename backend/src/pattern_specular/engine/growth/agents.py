@@ -1,6 +1,6 @@
 """The four dictionary-growth Agents: Proposer, Skeptic, Categorizer, Citation.
 
-Each makes one schema-enforced Anthropic call (via Instructor) over a recurring phrase the
+Each makes one schema-enforced LLM call (via Instructor) over a recurring phrase the
 Contextual Pass keeps proposing, and returns a validated verdict. The four run independently;
 the 3-of-4 gate over their outputs lives in ``review``. The LLM is a boundary, so raw model
 text is parsed into a Pydantic schema here before any of it reaches the gate or the database
@@ -131,7 +131,7 @@ def _call_agent[R: BaseModel](
     user: str,
     response_model: type[R],
 ) -> GrowthAgentRun[R]:
-    """Make one schema-enforced Anthropic call and wrap its result with usage/latency."""
+    """Make one schema-enforced LLM call and wrap its result with usage/latency."""
     started = time.monotonic()
     parsed, completion = client.create_with_completion(
         model=model,
