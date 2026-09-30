@@ -49,27 +49,22 @@ class Settings(BaseSettings):
     # the suite falls back to database_url in that case.
     test_database_url: str | None = None
 
-    # Anthropic API key for the LLM Agent stages (Contextual Pass, Judge,
-    # Recommendations). Optional so the service and the test suite boot without
-    # it — tests mock every Anthropic call; the Agent nodes raise only if invoked
-    # without a key. Never logged or committed.
+    # Google Gemini API key for the LLM Agent stages (Contextual Pass, Judge,
+    # Recommendations). Never logged or committed.
+    google_api_key: str | None = None
     anthropic_api_key: str | None = None
 
-    # Model for the analysis Agents (the Contextual Pass; later Recommendations).
-    # Kept in config, not hard-coded, so it can be swapped without touching the
-    # engine (design spec: Sonnet 4.6 for these stages).
-    analysis_model: str = "claude-sonnet-4-6"
+    # Model for the analysis Agents (the Contextual Pass, Recommendations).
+    analysis_model: str = "gemini-3.5-flash-lite"
 
-    # The Judge Agent's model (design spec: Haiku 4.5 for confidence scoring).
-    judge_model: str = "claude-haiku-4-5"
+    # The Judge Agent's model for confidence scoring.
+    judge_model: str = "gemini-3.5-flash-lite"
 
-    # Per-agent models for the four-agent dictionary-growth review (ADR 0012). The
-    # argument- and citation-recall roles run on Sonnet; the scope classification is a
-    # narrow call that Haiku handles. Kept in config so the tiering is tunable per ADR.
-    growth_proposer_model: str = "claude-sonnet-4-6"
-    growth_skeptic_model: str = "claude-sonnet-4-6"
-    growth_categorizer_model: str = "claude-haiku-4-5"
-    growth_citation_model: str = "claude-sonnet-4-6"
+    # Per-agent models for the four-agent dictionary-growth review.
+    growth_proposer_model: str = "gemini-3.5-flash-lite"
+    growth_skeptic_model: str = "gemini-3.5-flash-lite"
+    growth_categorizer_model: str = "gemini-3.5-flash-lite"
+    growth_citation_model: str = "gemini-3.5-flash-lite"
 
     # The Judge's gate, on the calibrated score (>= passes, ADR-0008). In config so it
     # is tunable per environment without a code change; a flag whose calibrated confidence
