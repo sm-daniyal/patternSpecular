@@ -1,6 +1,6 @@
 """Stage 2 of the engine: the LLM Contextual Pass, an Agent (Claude Sonnet 4.6).
 
-One schema-enforced Anthropic call (via Instructor) that reads a document in its role
+One schema-enforced LLM call (via Instructor) that reads a document in its role
 context and does two things the deterministic dictionary cannot: it rules each keyword hit
 against the TAFEP GDOR test, and it adds bias the keyword list missed — role-specific
 phrasing, coded language, framing. The model's output is parsed into a Pydantic schema
@@ -159,11 +159,11 @@ def run_contextual_pass(
     """Run the Contextual Pass over a document and return its validated rulings + usage.
 
     Args:
-        client: An Instructor-wrapped Anthropic client (or a test fake).
+        client: An Instructor-wrapped LLM client (Gemini or a test fake).
         document_text: The document to review.
         doc_type: The document's type, which sets the role context in the prompt.
         dictionary_flags: The keyword flags the dictionary stage raised, for in-context review.
-        model: The Anthropic model id (from config).
+        model: The model id (from config) (from config).
 
     Returns:
         The parsed result and the token/latency figures the audit log records.
