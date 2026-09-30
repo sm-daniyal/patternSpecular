@@ -1,20 +1,27 @@
 """Shared plumbing for the LLM Agent stages: Instructor client, pricing, cost estimate.
 
 The Contextual Pass, Judge, and Recommendations stages each make one schema-enforced
-Anthropic call; the client contract, pricing table, and cost estimate are identical and
+LLM call; the client contract, pricing table, and cost estimate are identical and
 live here once. Stage modules own only their prompt and schema.
+Supports Google Gemini (via google-genai) and Anthropic Claude.
 """
 
 from decimal import Decimal
 from typing import Any, Protocol, cast
 
 import instructor
+from google import genai
 from anthropic import Anthropic
 
 from pattern_specular.core.config import Settings
 
 # Static USD/MTok (input, output); an unknown model logs a null cost, never a wrong one.
 _PRICES_USD_PER_MTOK: dict[str, tuple[str, str]] = {
+    "gemini-3.5-flash-lite": ("0.05", "0.20"),
+    "gemini-3.8-flash": ("0.075", "0.30"),
+    "gemini-2.5-flash": ("0.075", "0.30"),
+    "gemini-1.5-flash": ("0.075", "0.30"),
+    "gemini-2.0-flash": ("0.10", "0.40"),
     "claude-sonnet-4-6": ("3", "15"),
     "claude-haiku-4-5": ("1", "5"),
 }
@@ -27,6 +34,25 @@ class StructuredCompletionClient(Protocol):
     """
 
     def create_with_completion(self, **kwargs: Any) -> tuple[Any, Any]: ...
+
+
+class _GeminiInstructorAdapter:
+    """Wraps instructor.from_genai client to normalize token usage attributes."""
+
+    def __init__(self, client: Any) -> None:
+        self._client = client
+
+    def create_with_completion(self, **kwargs: Any) -> tuple[Any, Any]:
+        kwargs.setdefault("strict", False)
+        parsed, completion = self._client.create_with_completion(**kwargs)
+        # Normalize token usage if present
+        usage = getattr(completion, "usage", None)
+        if usage is not None:
+            if not hasattr(usage, "input_tokens"):
+                usage.input_tokens = getattr(usage, "prompt_token_count", None)
+            if not hasattr(usage, "output_tokens"):
+                usage.output_tokens = getattr(usage, "candidates_token_count", None)
+        return parsed, completion
 
 
 def estimate_cost_usd(
@@ -45,13 +71,18 @@ def estimate_cost_usd(
 
 
 def build_instructor_client(settings: Settings) -> StructuredCompletionClient | None:
-    """Build the Instructor-wrapped Anthropic client, or None when no API key is configured.
+    """Build the Instructor-wrapped LLM client (Google Gemini or Anthropic Claude).
 
     Network-free: no request is made until ``create_with_completion`` is called. None lets
-    the orchestrator degrade an Agent stage to a passthrough. One client serves every stage;
-    the model is chosen per call.
+    the orchestrator degrade an Agent stage to a passthrough.
     """
-    if settings.anthropic_api_key is None:
-        return None
-    client = instructor.from_anthropic(Anthropic(api_key=settings.anthropic_api_key))
-    return cast(StructuredCompletionClient, client)
+    if settings.google_api_key:
+        genai_client = genai.Client(api_key=settings.google_api_key)
+        raw_client = instructor.from_genai(genai_client)
+        return cast(StructuredCompletionClient, _GeminiInstructorAdapter(raw_client))
+
+    if settings.anthropic_api_key:
+        anthropic_client = instructor.from_anthropic(Anthropic(api_key=settings.anthropic_api_key))
+        return cast(StructuredCompletionClient, anthropic_client)
+
+    return None
