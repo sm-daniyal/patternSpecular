@@ -1,6 +1,6 @@
 """Stage 5 of the engine: the Recommendations Agent (Claude Sonnet 4.6).
 
-One schema-enforced Anthropic call (via Instructor) that, for each surfaced flag, proposes
+One schema-enforced LLM call (via Instructor) that, for each surfaced flag, proposes
 2-3 evidence-anchored alternative phrasings — never a single "correct" answer (design spec
 §7). It runs only on flags the Judge passed above threshold, so low-confidence noise never
 reaches a manager. Each recommendation's rationale is grounded in the flag's citation, which
@@ -96,11 +96,11 @@ def run_recommendations(
     """Generate rewrites for the given flags and return the validated result + usage.
 
     Args:
-        client: An Instructor-wrapped Anthropic client (or a test fake).
+        client: An Instructor-wrapped LLM client (Gemini or a test fake).
         flags: The above-threshold flags to rewrite, in the order results must come back.
         evidence: Per-citation evidence text keyed by citation id, anchoring the rationale.
         doc_type: The document's type, which sets the role context in the prompt.
-        model: The Anthropic model id (from config).
+        model: The model id (from config) (from config).
 
     Returns:
         The parsed result and the token/latency figures the audit log records.
