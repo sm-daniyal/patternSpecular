@@ -140,7 +140,7 @@ def _passthrough_node(stage: str) -> EngineNode:
 def _build_contextual_node(
     session: Session, client: StructuredCompletionClient, model: str
 ) -> EngineNode:
-    """Build the real Contextual Pass node: a Sonnet 4.6 Agent logged to ``agent_runs``.
+    """Build the real Contextual Pass node: a Gemini Agent logged to ``agent_runs``.
 
     The node hands the Agent the dictionary flags raised so far, records the run
     (input/output/cost/latency), appends the Agent's new flags to the candidate channel with
@@ -205,7 +205,7 @@ def _build_judge_node(
     model: str,
     settings: Settings,
 ) -> EngineNode:
-    """Build the Judge node: a Haiku 4.5 Agent that confidence-scores the contextual flags.
+    """Build the Judge node: a Gemini Agent that confidence-scores the contextual flags.
 
     Dictionary flags are deterministic and pass ungated; contextual flags are scored and
     gated on the calibrated threshold, with below-threshold flags marked suppressed (logged,
@@ -267,7 +267,7 @@ def _build_judge_node(
 def _build_recommendations_node(
     session: Session, client: StructuredCompletionClient, model: str
 ) -> EngineNode:
-    """Build the Recommendations node: a Sonnet 4.6 Agent that rewrites surfaced flags.
+    """Build the Recommendations node: a Gemini Agent that rewrites surfaced flags.
 
     It runs on the un-suppressed *contextual* flags only — the ones the Judge passed above
     threshold (design spec §7); dictionary flags bypass it (their stable rewrites are a curated
@@ -338,7 +338,7 @@ def _build_recommendations_node(
 def _build_drift_node(
     session: Session, client: StructuredCompletionClient, model: str
 ) -> EngineNode:
-    """Build the drift node: a Sonnet 4.6 Agent that checks the document against a reference.
+    """Build the drift node: a Gemini Agent that checks the document against a reference.
 
     It compares the document against the run's ``drift_reference`` and emits which reference
     criteria the writing did and did not address. No-ops when no reference is present (the

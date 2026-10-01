@@ -53,7 +53,7 @@ def main() -> None:  # pragma: no cover
     settings = get_settings()
     client = build_instructor_client(settings)
     if client is None:
-        raise SystemExit("ANTHROPIC_API_KEY is required to run the dictionary-growth review")
+        raise SystemExit("GOOGLE_API_KEY is required to run the dictionary-growth loop.")
 
     session = get_sessionmaker()()
     try:

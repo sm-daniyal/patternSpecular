@@ -1,6 +1,6 @@
 """Measure the live engine against the gold set and report calibration (#23, ADR-0008).
 
-Run on demand (``python -m pattern_specular.jobs.calibrate``); it makes real Anthropic calls, so it
+Run on demand (``python -m pattern_specular.jobs.calibrate``); it makes real Google calls, so it
 is never part of CI. For each gold document it creates scratch ``users``/``documents``/
 ``analysis_runs`` rows the engine's audit writes need, invokes the real graph, turns the produced
 flags into predictions, then rolls the scratch rows back — calibration measures the engine, it does
@@ -150,7 +150,7 @@ def main() -> None:
     settings = get_settings()
     client = build_instructor_client(settings)
     if client is None:
-        raise SystemExit("ANTHROPIC_API_KEY is required to calibrate against the live engine")
+        raise SystemExit("GOOGLE_API_KEY is required to calibrate against the live engine")
 
     session = get_sessionmaker()()
     try:

@@ -1,8 +1,8 @@
 """Prime the demo: run the real engine over the seeded submitted documents and persist their
 flags and drift findings, so reopening a published demo document re-hydrates real analysis (#130).
 
-Run on demand (``python -m pattern_specular.jobs.seed_demo_analysis``) after ``seed_demo``. With an
-Anthropic key configured it makes real calls — the full pipeline, so the contextual flags that
+Run on demand (``python -m pattern_specular.jobs.seed_demo_analysis``) after ``seed_demo``. With a
+Google key configured it makes real calls — the full pipeline, so the contextual flags that
 carry the demo's gendered pattern ("polished", "collaborative") surface alongside the dictionary
 hits, plus drift coverage. With no key it persists the deterministic dictionary pass only. Never
 part of CI (it can make real calls, like ``calibrate``).
@@ -35,7 +35,7 @@ def _unanalysed_submitted_documents(session: Session) -> list[Document]:
     """Submitted documents with no *complete* run — seeded demo docs and any that failed priming.
 
     Keyed on the absence of a ``complete`` run, not any run at all, so a document whose only runs
-    failed (e.g. the Anthropic call errored mid-batch on a spent credit balance) is retried on the
+    failed (e.g. the Google call errored mid-batch on a spent credit balance) is retried on the
     next run rather than skipped forever. A document a manager submitted live already has a complete
     run, so it is still skipped — priming stays idempotent.
     """
