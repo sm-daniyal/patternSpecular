@@ -1,0 +1,147 @@
+# PR quality gate. Backend (ruff, mypy --strict, pytest on a Postgres service) and frontend
+# (eslint, prettier, build) run on every PR.
+# See docs/adr/0004-ci-pipeline.md.
+name: CI
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  backend:
+    name: backend (lint, types, tests)
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: specular
+          POSTGRES_PASSWORD: specular
+          POSTGRES_DB: pattern_specular_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U specular -d pattern_specular_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+          cache-dependency-glob: backend/pyproject.toml
+
+      - name: Install dependencies
+        working-directory: backend
+        run: uv pip install --system -e ".[dev]"
+
+      - name: Lint (ruff)
+        working-directory: backend
+        run: ruff check .
+
+      - name: Format (ruff)
+        working-directory: backend
+        run: ruff format --check .
+
+      - name: Types (mypy --strict)
+        working-directory: backend
+        run: mypy src
+
+      - name: Tests (pytest)
+        working-directory: backend
+        env:
+          APP_ENV: test
+          DATABASE_URL: postgresql+psycopg://specular:specular@localhost:5432/pattern_specular_test
+        run: pytest --cov=pattern_specular --cov-report=xml
+
+      # Hand coverage.xml to the sonarcloud job, which runs on a separate runner.
+      - name: Upload coverage report
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-coverage
+          path: backend/coverage.xml
+          retention-days: 1
+
+  frontend:
+    name: frontend (lint, format, test, build)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Node
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: frontend/.nvmrc
+          cache: npm
+          cache-dependency-path: frontend/package.json
+
+      - name: Install dependencies
+        working-directory: frontend
+        run: npm install
+
+      - name: Lint (eslint)
+        working-directory: frontend
+        run: npm run lint
+
+      - name: Tests (vitest)
+        working-directory: frontend
+        run: npm run test:coverage
+
+      # vitest writes lcov paths relative to frontend/; Sonar resolves them from the
+      # repo root. Rebase so coverage maps to the real files.
+      - name: Rebase coverage paths for Sonar
+        working-directory: frontend
+        run: sed -i 's|^SF:src/|SF:frontend/src/|' coverage/lcov.info
+
+      - name: Build (tsc + vite)
+        working-directory: frontend
+        run: npm run build
+
+      # Hand lcov.info to the sonarcloud job, which runs on a separate runner.
+      - name: Upload coverage report
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-coverage
+          path: frontend/coverage/lcov.info
+          retention-days: 1
+
+  sonarcloud:
+    name: sonarcloud (scan, quality gate)
+    runs-on: ubuntu-latest
+    # Waits on both jobs' coverage artifacts before scanning.
+    needs: [backend, frontend]
+    if: false # Enable when SONAR_TOKEN is added to repository secrets
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Download backend coverage
+        uses: actions/download-artifact@v4
+        with:
+          name: backend-coverage
+          path: backend
+
+      - name: Download frontend coverage
+        uses: actions/download-artifact@v4
+        with:
+          name: frontend-coverage
+          path: frontend/coverage
+
+      - name: SonarCloud scan
+        uses: SonarSource/sonarqube-scan-action@v5
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_HOST_URL: https://sonarcloud.io
