@@ -36,22 +36,22 @@ class DictionaryRule:
 def load_active_rules(session: Session, region_code: str) -> list[DictionaryRule]:
     """Load active dictionary rules scoped to ``region_code`` as plain value objects.
 
-    The region filter and the active filter are applied here, at the DB boundary, so the
-    matcher can trust that every rule it receives is in scope for the document.
+    Supports specific region codes (e.g. "SG", "IN") or "ALL" for multi-region pan-APAC evaluation.
 
     Args:
         session: An open database session.
-        region_code: The jurisdiction whose lexicon applies (``"SG"`` for the MVP).
+        region_code: The jurisdiction whose lexicon applies ("SG", "IN", or "ALL").
 
     Returns:
         The region's active rules; empty if the region has no active lexicon.
     """
-    entries = session.scalars(
-        select(Dictionary).where(
-            Dictionary.region_code == region_code,
-            Dictionary.active.is_(True),
-        )
-    ).all()
+    stmt = select(Dictionary).where(Dictionary.active.is_(True))
+    if region_code != "ALL" and region_code:
+        stmt = stmt.where(Dictionary.region_code == region_code)
+    else:
+        stmt = stmt.where(Dictionary.region_code.in_(["SG", "IN"]))
+
+    entries = session.scalars(stmt).all()
     return [
         DictionaryRule(
             id=entry.id,
@@ -66,27 +66,24 @@ def load_active_rules(session: Session, region_code: str) -> list[DictionaryRule
 
 
 def load_category_citations(session: Session, region_code: str) -> dict[BiasCategory, uuid.UUID]:
-    """Map each category in the active lexicon to a representative TAFEP citation.
+    """Map each category in the active lexicon to a representative statutory citation.
 
-    This is the citation floor a contextual flag attaches (ADR 0006: every flag carries a
-    citation by reference, never the model's word). A contextual flag of category X reuses
-    the curated TAFEP citation that an active dictionary entry of X already cites. A category
-    with no active entry has no floor, and the Contextual Pass suppresses flags it cannot
-    cite rather than surfacing them uncited.
+    Supports specific region codes ("SG", "IN") or "ALL" for combined jurisdictional coverage.
 
     Args:
         session: An open database session.
-        region_code: The jurisdiction whose lexicon applies (``"SG"`` for the MVP).
+        region_code: The jurisdiction whose lexicon applies ("SG", "IN", or "ALL").
 
     Returns:
-        One citation id per category present in the region's active lexicon.
+        One citation id per category present in the active lexicon.
     """
-    rows = session.execute(
-        select(Dictionary.category, Dictionary.citation_id).where(
-            Dictionary.region_code == region_code,
-            Dictionary.active.is_(True),
-        )
-    ).all()
+    stmt = select(Dictionary.category, Dictionary.citation_id).where(Dictionary.active.is_(True))
+    if region_code != "ALL" and region_code:
+        stmt = stmt.where(Dictionary.region_code == region_code)
+    else:
+        stmt = stmt.where(Dictionary.region_code.in_(["SG", "IN"]))
+
+    rows = session.execute(stmt).all()
     floor: dict[BiasCategory, uuid.UUID] = {}
     for category, citation_id in rows:
         floor.setdefault(category, citation_id)

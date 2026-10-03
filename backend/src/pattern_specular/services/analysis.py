@@ -26,7 +26,7 @@ from pattern_specular.models.documents import AnalysisRun, Document
 from pattern_specular.models.engine import Flag
 from pattern_specular.models.enums import AnalysisRunStatus, AnalysisTrigger
 
-_REGION_CODE = "SG"
+_REGION_CODE = "ALL"
 _log = structlog.get_logger("pattern_specular.services.analysis")
 
 

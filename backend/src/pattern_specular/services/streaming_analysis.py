@@ -40,7 +40,7 @@ from pattern_specular.services.analysis import build_flag
 from pattern_specular.services.drift_findings import persist_drift_findings, reference_kind_for
 from pattern_specular.services.run_registry import RunRegistry
 
-_REGION_CODE = "SG"
+_REGION_CODE = "ALL"
 _log = structlog.get_logger("pattern_specular.services.streaming_analysis")
 
 
