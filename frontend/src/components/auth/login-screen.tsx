@@ -84,6 +84,8 @@ export function LoginScreen({
                 <Input
                   type="text"
                   autoComplete="username"
+                  aria-label="Username or Email"
+                  aria-required="true"
                   value={email}
                   onChange={(event) => setEmail(event.target.value)}
                   required
@@ -96,6 +98,8 @@ export function LoginScreen({
                 <Input
                   type="password"
                   autoComplete="current-password"
+                  aria-label="Password"
+                  aria-required="true"
                   value={password}
                   onChange={(event) => setPassword(event.target.value)}
                   required
