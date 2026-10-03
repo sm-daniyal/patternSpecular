@@ -8,8 +8,10 @@ const badge = cva(
     variants: {
       tone: {
         red: 'bg-red-primary text-white',
+        amber: 'bg-amber-secondary text-ink',
         neutral: 'bg-chip-track text-ink-muted',
         green: 'bg-green-positive text-white',
+        region: 'bg-ink text-white font-mono uppercase tracking-wider',
       },
     },
     defaultVariants: { tone: 'red' },
