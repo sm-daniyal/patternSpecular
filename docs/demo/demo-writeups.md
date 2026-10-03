@@ -137,10 +137,10 @@ corroborating her process ownership.
   (streams in after a short pause). Gender adjectives are contextual; age/race/nationality/family
   terms are dictionary.
 
-### Priming the dashboard (requires Anthropic credits)
+### Priming the dashboard (requires Google credits)
 `seed_demo` seeds the documents, subjects, peer feedback, rubrics, and corroboration — the static
 panels (peer corroboration) work immediately. The **Pattern Dashboard** and the **contextual
-(gender) flags** need the LLM pipeline, so run, from `backend/` with a funded `ANTHROPIC_API_KEY`:
+(gender) flags** need the LLM pipeline, so run, from `backend/` with a funded `Google_API_KEY`:
 
 ```
 python -m pattern_specular.jobs.seed_demo_analysis    # flags + drift over the submitted history

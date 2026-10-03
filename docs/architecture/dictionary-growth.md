@@ -18,10 +18,10 @@ flowchart TB
 
     subgraph AGENTS["four independent agents, one candidate"]
         direction LR
-        P["Proposer (Sonnet)<br/>argues FOR: names the protected<br/>characteristic, picks the category,<br/>drafts neutral alternatives"]
-        S["Skeptic (Sonnet)<br/>argues AGAINST: standard business<br/>language? too narrow? thin evidence?<br/>then gives its honest verdict"]
-        C["Categorizer (Haiku)<br/>scope: biased across hiring generally,<br/>or only for particular roles?"]
-        CI["Citation (Sonnet)<br/>finds academic or regulatory support;<br/>'no support exists' is a valid answer,<br/>never fabricates"]
+        P["Proposer (Gemini Flash)<br/>argues FOR: names the protected<br/>characteristic, picks the category,<br/>drafts neutral alternatives"]
+        S["Skeptic (Gemini Flash)<br/>argues AGAINST: standard business<br/>language? too narrow? thin evidence?<br/>then gives its honest verdict"]
+        C["Categorizer (Gemini Flash)<br/>scope: biased across hiring generally,<br/>or only for particular roles?"]
+        CI["Citation (Gemini Flash)<br/>finds academic or regulatory support;<br/>'no support exists' is a valid answer,<br/>never fabricates"]
     end
 
     AGENTS --> GATE{"the gate — all three:<br/>citation found<br/>AND scope is general<br/>AND Proposer or Skeptic in favour"}
@@ -33,7 +33,7 @@ flowchart TB
     LIVE --> HIT(["next engine run: the phrase is a<br/>deterministic Stage-1 hit — no LLM needed"])
 ```
 
-The batch runs on demand (`python -m pattern_specular.jobs.growth` — real Anthropic
+The batch runs on demand (`python -m pattern_specular.jobs.growth` — real Google
 calls, never in CI): trigger (`services/growth_trigger.py`), review
 (`services/dictionary_growth.py`), HR decisions (`services/dictionary_approval.py`,
 behind the HR-only `/growth` API).

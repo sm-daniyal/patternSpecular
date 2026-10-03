@@ -1,6 +1,6 @@
 # Project management
 
-Pattern Specular is a solo, four-week build for the UBS Tomorrow's Talent Programme 2026,
+Pattern Specular is a solo, four-week build for an independent portfolio project,
 run with the standard lightweight agile practices. This page explains how the work is
 organised, for a non-technical reader. Developer-facing rules are in
 [CONVENTIONS.md](CONVENTIONS.md).
@@ -15,7 +15,7 @@ shift.
 | Term | Meaning here |
 |---|---|
 | **Sprint** | One week of committed work. |
-| **Standup** | A regular check-in with the programme mentor and engineering buddy: done, next, blocked. |
+| **Standup** | A regular check-in with the project mentor and engineering buddy: done, next, blocked. |
 | **Milestone** | A fixed programme deadline (checkpoints, final showcase). Sprints aim at these. |
 
 ## Breaking work down

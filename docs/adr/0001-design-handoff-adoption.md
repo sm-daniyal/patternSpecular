@@ -5,7 +5,7 @@
 
 ## Context
 
-The visual design for Pattern Specular was produced in Claude Design and exported as a
+The visual design for Pattern Specular was produced in Gemini Design and exported as a
 handoff bundle (`pattern-specular-design-system/`, kept at the repo root as read-only
 reference). The bundle contains three kinds of thing:
 
@@ -64,6 +64,6 @@ loader page, `_adherence.oxlintrc.json`, and image assets. The entire
 
 ## Notes
 
-The brand fonts (UBS Serif / UBS Sans) are proprietary and not in the bundle; the tokens
+The original brand fonts are proprietary and not in the bundle; the tokens
 substitute the closest open Google Fonts (Source Serif 4 / Inter). Replace with licensed
 fonts for production. See `docs/design-system/README.md`.

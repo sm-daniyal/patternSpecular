@@ -73,15 +73,15 @@ What the split buys:
 - **A hallucinated quote cannot reach a manager.** The Adjudicator is code doing a
   string search, not a prompt asking the model to be honest. The drift check gets the
   same treatment: a claimed quote that isn't verbatim in the source is blanked.
-- **A second model checks the first.** The Judge (Haiku) re-examines each flag against
-  the document text itself — not the Contextual Pass's (Sonnet) explanation — so its
+- **A second model checks the first.** The Judge (Gemini Flash) re-examines each flag against
+  the document text itself — not the Contextual Pass's (Gemini Flash) explanation — so its
   verdict is independent of the reasoning it is checking. It answers a fixed rubric N
   times; a flag's confidence is the fraction of runs agreeing it's biased. The full
   design: [llm-judge.md](llm-judge.md).
 - **Nothing is silently deleted.** Every dropped or suppressed flag is persisted with
   the reason — the audit trail is a product feature (log-everything-suppress-in-UI),
   and the Pattern Dashboard later mines these same rows.
-- **The pipeline degrades, it doesn't fail.** Agents are injected; with no Anthropic
+- **The pipeline degrades, it doesn't fail.** Agents are injected; with no Google
   key the LLM stages become passthroughs and dictionary flagging still works. Every LLM
   response is parsed through a schema (Instructor) before any domain object is built,
   and every agent call's inputs, outputs, and cost are recorded.

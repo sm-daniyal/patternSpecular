@@ -26,7 +26,7 @@ must stay deterministic and offline (CONVENTIONS: tests never hit the live API).
   stays the identity; the gate reads `calibrate(raw)`, so introducing a fitted map later is a
   one-line change, decided empirically from the measured ECE/Brier.
 - **Pure metrics in CI; live run on demand.** `services/calibration.py` holds the metric maths
-  as pure functions, unit-tested deterministically. `jobs/calibrate.py` makes the real Anthropic
+  as pure functions, unit-tested deterministically. `jobs/calibrate.py` makes the real Google
   calls, runs the engine over the gold set on scratch rows it rolls back, and reports — never in
   CI.
 - **Significance verified standalone.** Until the Pattern Aggregator (#66) exists, a test

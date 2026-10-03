@@ -1,7 +1,7 @@
 # Future scope
 
 Design proposals for work beyond the MVP. **Nothing here is built or scheduled** — the
-repository is expected to freeze at the programme showcase. This page records the
+repository is expected to freeze at the project showcase. This page records the
 architecture thinking: where each idea would plug in, and what it deliberately leaves
 alone.
 
@@ -17,7 +17,7 @@ flowchart TB
     H["HR portal"] --> API
     API --> ENG["Analysis engine<br/>(Agents + Modules)"]
     API --> AGG["Pattern Aggregator<br/>(no LLM)"]
-    ENG --> LLM["Anthropic — Sonnet 4.6 / Haiku 4.5"]
+    ENG --> LLM["Google Gemini 3.5 Flash Lite"]
     ENG --> DB[(PostgreSQL)]
     AGG --> DB
     ENG --> BLOB[(Blob storage)]
@@ -38,7 +38,7 @@ flowchart TB
     API -.-> LB
     LB -.-> DB
 
-    FEED["Real UBS feedback / ATS / HRIS"]
+    FEED["Real portfolio project feedback / ATS / HRIS"]
     FEED -.->|"replaces synthetic peer feedback"| DB
 
     REG["Region dictionaries<br/>UK / US / EU / MY / ID / TH / PH / VN"]
@@ -51,12 +51,12 @@ flowchart TB
 ## The proposals
 
 ### Multi-model gateway
-Route each agent to a model from any provider, chosen at runtime, instead of Anthropic
+Route each agent to a model from any provider, chosen at runtime, instead of Google Gemini 3.5 Flash Lite
 throughout. **Seam:** models are already per-agent config (`core/config.py`) behind one
 `StructuredCompletionClient` interface (`engine/llm_agent.py`) — the gateway is a second
 implementation of an interface that already exists, which is why
-[CLAUDE.md](../CLAUDE.md) says not to build the abstraction yet. **Seeded by** an offline
-cost/agreement eval over the gold set (Sonnet/Haiku vs DeepSeek), reusing the calibration
+[Gemini.md](../Gemini.md) says not to build the abstraction yet. **Seeded by** an offline
+cost/agreement eval over the gold set (Google Gemini 3.5 Flash Lite vs DeepSeek), reusing the calibration
 approach. **Leaves alone:** the engine, the trust guarantees, and the Judge's
 different-model independence ([llm-judge.md](architecture/llm-judge.md)).
 
@@ -96,7 +96,7 @@ which becomes a per-document or per-tenant setting.
 
 ### Real feedback integration
 Replace the synthetic peer feedback the promotion drift check runs against with the real
-UBS system of record, via ATS / HRIS connectors. **Seam:** peer feedback is already an
+portfolio project system of record, via ATS / HRIS connectors. **Seam:** peer feedback is already an
 isolated, read-only reference corpus (`PeerFeedback`, resolved by
 `services/drift_reference.py`); the model docstring already notes it is
 "synthetic data for the MVP." Swapping the source behind the same read path is the change.

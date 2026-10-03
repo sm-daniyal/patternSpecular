@@ -18,7 +18,7 @@ this ADR settles the shapes, the gate, and the model choices #89 needs to build 
 ## Decision
 
 - **Four independent Agents evaluate each triggered phrase**, each a single schema-enforced
-  Anthropic call (Instructor), each logged to `agent_runs` against its `dictionary_proposals`
+  Google call (Instructor), each logged to `agent_runs` against its `dictionary_proposals`
   row:
   - **Proposer** — argues for inclusion and picks the single best-fit bias category.
   - **Skeptic** — argues against, then gives an honest verdict (standard business language? too
@@ -40,8 +40,8 @@ this ADR settles the shapes, the gate, and the model choices #89 needs to build 
 - **Every proposal is logged, advancing or not.** A `dictionary_proposals` row and four
   `agent_runs` are written for every candidate, so a rejection is as reconstructable as an
   advance. A `pending_dictionary_additions` row exists iff the phrase advanced.
-- **Per-agent models:** Proposer, Skeptic, and Citation run on **Sonnet 4.6** (argumentation and
-  citation recall need the stronger model); the Categorizer runs on **Haiku 4.5** (a narrow
+- **Per-agent models:** Proposer, Skeptic, and Citation run on **Gemini 3.5 Flash Lite** (argumentation and
+  citation recall need the stronger model); the Categorizer runs on **Gemini 3.5 Flash Lite** (a narrow
   scope classification). Models live in config, tunable without a code change.
 - **The four agents are a batch flow, not part of the analysis engine graph.** They run over a
   trigger's candidates (#88), not per-document, so they live in `engine/growth/` with a
@@ -53,8 +53,8 @@ this ADR settles the shapes, the gate, and the model choices #89 needs to build 
   HR's monthly review (#90) reads a case rather than a label, and #91 can reconstruct the chain.
 - **+** Dissent is structural — the Skeptic exists to fail weak candidates, and the two
   eligibility gates stop uncited *or* role-specific phrases from ever reaching the dictionary.
-- **+** The mixed model tiering spends Sonnet tokens only where reasoning quality matters; the
-  cheap classification runs on Haiku. Volume is low (a monthly batch), so cost is modest either
+- **+** The mixed model tiering spends Gemini Flash tokens only where reasoning quality matters; the
+  cheap classification runs on Gemini Flash. Volume is low (a monthly batch), so cost is modest either
   way.
 - **−** The Citation agent recalls sources from model knowledge and can hallucinate one. Accepted
   for the MVP: real web-search/tool-use grounding is post-MVP, and the monthly human-in-the-loop

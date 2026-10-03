@@ -6,7 +6,7 @@ the document text itself and the flag only survives if the Judge consistently ag
 is biased. The Judge never emits a score — it answers a fixed rubric several times, and
 the flag's confidence is how often those answers derive "biased".
 
-Why it exists: the Contextual Pass (Claude Sonnet 4.6) both finds flags and explains
+Why it exists: the Contextual Pass (Gemini 3.5 Flash Lite) both finds flags and explains
 them. Letting the same reasoning grade itself is how false positives survive — a
 plausible explanation reads as convincing to the model that wrote it. The Judge is
 structured so that its evidence, its model, and its output format are all independent of
@@ -22,7 +22,7 @@ What happens when the engine's judge node executes, end to end:
 sequenceDiagram
     participant O as Orchestrator (judge node)
     participant J as Judge stage
-    participant H as Claude Haiku 4.5
+    participant H as Gemini Gemini 3.5 Flash Lite
     participant DB as PostgreSQL
 
     O->>J: contextual flags + document text
@@ -47,8 +47,8 @@ Details the diagram encodes:
   (`context_window`, `engine/judge.py`). The Contextual Pass's explanation of *why* it
   flagged the phrase is deliberately withheld — the Judge forms its own view from the
   same evidence a human reviewer would get.
-- **A different model on purpose.** The Judge runs Haiku 4.5 while the generator runs
-  Sonnet 4.6. Same-model judging is the worst self-preference configuration; the sampling
+- **A different model on purpose.** The Judge runs Gemini 3.5 Flash Lite while the generator runs
+  Gemini 3.5 Flash Lite. Same-model judging is the worst self-preference configuration; the sampling
   budget is spent on more samples, not a bigger judge.
 - **Shuffled order per sample.** Models favour items by list position. Each sample gets
   an independently shuffled flag order (deterministic — ids sorted by
@@ -119,7 +119,7 @@ judgment must not silently delete a verified flag:
 
 | Condition | Behaviour |
 |---|---|
-| No Anthropic client configured | Every flag passes ungated (`confidence=None`), stage logs the degrade |
+| No Google client configured | Every flag passes ungated (`confidence=None`), stage logs the degrade |
 | A sample skips a flag / duplicates a `flag_id` | That flag gets one fewer vote; extra rubrics for the same id within a sample are dropped |
 | No sample answered a flag at all | Passes ungated with a warning (`engine.judge_flag_unscored`) |
 | Below-threshold confidence | Suppressed: persisted with its score, hidden in the UI, no recommendation — log-everything-suppress-in-UI |
@@ -132,7 +132,7 @@ guaranteed calibrated — so calibration is measured, never assumed:
 - A hand-labelled **gold set** (`jobs/gold_set.py`) is the answer key: documents whose
   correct flags are labelled with span, category, and producing stage.
 - `python -m pattern_specular.jobs.calibrate` runs the **real engine** over the gold set
-  (real Anthropic calls — never in CI), pools predictions, and reports per-stage
+  (real Google calls — never in CI), pools predictions, and reports per-stage
   precision/recall, **ECE** (expected calibration error) and **Brier score**
   (`services/calibration.py`).
 - The calibration map stays the **identity** until those numbers show material

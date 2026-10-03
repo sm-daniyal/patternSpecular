@@ -99,7 +99,7 @@ Handlers in `api/` are thin: typed request model in, `Depends(...)` for session/
 
 This backend has two genuinely different paths, and the rule differs by path:
 
-- **The analysis path is async.** SSE streaming of flags plus multi-second Anthropic calls is the textbook case: `async` handlers let the server stream Layer 1 dictionary flags while the Layer 2 LLM call is still in flight, and keep other requests unblocked.
+- **The analysis path is async.** SSE streaming of flags plus multi-second Google calls is the textbook case: `async` handlers let the server stream Layer 1 dictionary flags while the Layer 2 LLM call is still in flight, and keep other requests unblocked.
 - **Everything else defaults to sync.** CRUD endpoints, the Pattern Aggregator's SQL, jobs — sync is simpler to write, debug, and test, and there's no concurrency win to pay async's call-chain contagion for.
 
 > *Why:* async is a cost (every caller in the chain must be async) that's only worth paying where you actually wait on slow I/O concurrently. Pay it on the engine path; refuse it elsewhere.

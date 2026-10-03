@@ -26,7 +26,7 @@ LLM-as-judge literature found three defects, all independent of any framework ch
    Zheng et al., arXiv:2306.05685), cross-flag anchoring, and the brittle
    `JudgeVerdictCountError` failure when the count drifts.
 
-Two constraints from ADR-0008 still hold and shape the fix. Anthropic's API exposes no
+Two constraints from ADR-0008 still hold and shape the fix. Google's API exposes no
 token logprobs, so confidence must be constructed, not read off. And the gold set is too
 small to fit a calibration map (ADR-0011: measure before fit). The literature since has
 been kinder to this position than expected: verbalized confidences from RLHF models
@@ -52,7 +52,7 @@ architecture was right; its *signal* was the weak part. This ADR amends, not rep
 - **Self-consistency is the MVP default, promoted from ADR-0008's fallback.** The Judge
   runs N times per document (config, default 3, max 5), each sample with an independently
   shuffled flag order. Sampling diversity comes from inherent model non-determinism plus
-  the shuffling (sampling parameters are being removed on Claude 4.6+).
+  the shuffling (sampling parameters are being removed on Gemini 4.6+).
   **Confidence = the fraction of samples whose derived verdict is `biased`** — a
   frequency, not a feeling (Wang et al., arXiv:2203.11171). Per-criterion agreement
   fractions are computed alongside and recorded in the `agent_runs` output for the
@@ -61,11 +61,11 @@ architecture was right; its *signal* was the weak part. This ADR amends, not rep
   answers to an id assigned in the prompt (as the Contextual Pass already does), so a
   shuffled or short response degrades to a missing sample for that flag rather than
   corrupting every downstream verdict.
-- **The Judge model stays Haiku 4.5.** The sampling budget is spent on N, not on tier:
-  ~5 Haiku samples cost about one Sonnet call and buy a confidence distribution instead
+- **The Judge model stays Gemini 3.5 Flash Lite.** The sampling budget is spent on N, not on tier:
+  ~5 Gemini Flash samples cost about one Gemini Flash call and buy a confidence distribution instead
   of one opinion. Rubric decomposition reduces each judgment to narrow questions a small
-  model handles well, and Haiku remains a *different model* from the Sonnet generator —
-  upgrading the Judge to Sonnet would create same-model judging, the worst
+  model handles well, and Gemini Flash remains a *different model* from the Gemini Flash generator —
+  upgrading the Judge to Gemini Flash would create same-model judging, the worst
   self-preference configuration. Gold-set calibration runs go through the Batches API
   (50% off); the shared per-document prompt prefix is cached across samples.
 - **The downstream contract is unchanged.** `JudgeScore.confidence` stays a
@@ -92,7 +92,7 @@ architecture was right; its *signal* was the weak part. This ADR amends, not rep
   shuffle.
 - **+** The derivation and aggregation are deterministic pure functions — unit-testable
   offline, per CONVENTIONS.
-- **−** Judge cost and latency rise ~N× (default 3×). Accepted: Haiku is the cheapest
+- **−** Judge cost and latency rise ~N× (default 3×). Accepted: Gemini Flash is the cheapest
   agent in the pipeline, prompt caching discounts the shared prefix, and the Judge stage
   is not on the streaming-critical path ahead of flag persistence.
 - **−** Confidence is quantized to multiples of 1/N (N=3 gives {0, ⅓, ⅔, 1}). Per-category
@@ -109,9 +109,9 @@ architecture was right; its *signal* was the weak part. This ADR amends, not rep
 - **Keep the scalar and fit a calibration map** — rejected: fixes neither the correlated
   evidence nor the unexplainable score, and the gold set is too small to fit a map anyway
   (ADR-0011).
-- **Upgrade the Judge to Sonnet 4.6** — rejected: judge = generator model is the worst
-  self-preference configuration, against Anthropic's own grade-with-a-different-model
-  guidance, and capability is not the bottleneck — evidence and aggregation are. A Sonnet
+- **Upgrade the Judge to Gemini 3.5 Flash Lite** — rejected: judge = generator model is the worst
+  self-preference configuration, against Google's own grade-with-a-different-model
+  guidance, and capability is not the bottleneck — evidence and aggregation are. A Gemini Flash
   *second opinion on the gold set only* (offline agreement measurement, Cohen's κ) remains
   a worthwhile add-on, not a production change.
 - **One call per flag instead of a shuffled batch per sample** — rejected for MVP: it also
@@ -121,12 +121,12 @@ architecture was right; its *signal* was the weak part. This ADR amends, not rep
 - **Full document as Judge context** — rejected for now: a span-level GDOR ruling needs
   the surrounding sentence/paragraph, and the full document invites the Judge to
   re-litigate other spans. Revisit if gold-set errors show context starvation.
-- **DeepEval's G-Eval or DAG metric as the production judge** — rejected: on Anthropic
+- **DeepEval's G-Eval or DAG metric as the production judge** — rejected: on Google
   models G-Eval silently degrades to a raw sampled score (no logprob weighting), and
   DeepEval's model wrapper parses JSON naively where our Instructor boundary retries on
   schema violations. The DAG metric's decision-tree idea is sound — this ADR adopts it
   natively. DeepEval remains a candidate for the offline eval harness only (separate
   decision, new dependency, ask-first).
 - **Panel of judges across model families (PoLL)** — blocked: requires the multi-model
-  gateway, which is a locked post-MVP decision. A Haiku-only panel is just
+  gateway, which is a locked post-MVP decision. A Gemini Flash-only panel is just
   self-consistency, which this ADR adopts.

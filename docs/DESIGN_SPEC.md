@@ -1,7 +1,7 @@
 # The Pattern Specular — Design Specification
 
 > **Status: living product specification.** Originating from the Phase 4 design phase, this is
-> the product source of truth referenced by [CLAUDE.md](../CLAUDE.md) and
+> the product source of truth referenced by [Gemini.md](../Gemini.md) and
 > [CONVENTIONS.md](CONVENTIONS.md). It is maintained as a living document — edit it as the product
 > evolves, with git history as the decision trail. Where an [ADR](adr/) conflicts with this
 > document, **the ADR supersedes it**: ADRs remain the record for architecture decisions and their
@@ -108,13 +108,13 @@ The engine is a bounded, named-step flow. Each stage is logged, each transition 
 
 **Stage 1 — Dictionary Service (Module).** spaCy lemma matching against the curated dictionary. Deterministic, no LLM call. Every hit cites TAFEP or peer-reviewed research. This is the Layer 1 latency tier.
 
-**Stage 2 — LLM Contextual Pass (Agent).** One LLM call (Claude Sonnet 4.6 via Instructor for schema-enforced JSON). ~3–6s. Checks dictionary flags' validity by role context. Adds new flags the dictionary missed. Tags candidates as *general* (dictionary-eligible) versus *role-specific* (LLM-only).
+**Stage 2 — LLM Contextual Pass (Agent).** One LLM call (Gemini 3.5 Flash Lite via Instructor for schema-enforced JSON). ~3–6s. Checks dictionary flags' validity by role context. Adds new flags the dictionary missed. Tags candidates as *general* (dictionary-eligible) versus *role-specific* (LLM-only).
 
 **Stage 3 — Adjudicator (Module).** Deterministic code, no LLM call. Literal string-match every LLM-claimed span against the source. If the quote doesn't exist verbatim, drop the flag. This is the structural guarantee behind "every flag has evidence" — hallucinated spans cannot reach the manager.
 
-**Stage 4 — LLM Judge (Agent).** Claude Haiku 4.5. Scores each surviving flag on two dimensions: **confidence** score (how strongly the bias claim holds). Flags below the confidence threshold do not progress further. The Judge's full reasoning and scores are persisted (Tier 2).
+**Stage 4 — LLM Judge (Agent).** Gemini Gemini 3.5 Flash Lite. Scores each surviving flag on two dimensions: **confidence** score (how strongly the bias claim holds). Flags below the confidence threshold do not progress further. The Judge's full reasoning and scores are persisted (Tier 2).
 
-**Stage 5 — Recommendations Agent (Agent).** Sonnet 4.6 with a separate prompt and structured output schema. Generates 2–3 alternative phrasings for each high-confidence flag, anchored to citations. Only runs above the Judge's confidence threshold — see Section 7.
+**Stage 5 — Recommendations Agent (Agent).** Gemini 3.5 Flash Lite with a separate prompt and structured output schema. Generates 2–3 alternative phrasings for each high-confidence flag, anchored to citations. Only runs above the Judge's confidence threshold — see Section 7.
 
 #### The drift-check stage (parallel to bias detection)
 
@@ -236,7 +236,7 @@ The current pipeline detects bias but does not propose alternatives. A dedicated
 2. *Show, don't tell.* Surface 2–3 alternatives, never one "correct" answer. The moment there is one answer, the tool is judging.
 3. *Recommendations are dismissible and logged.* Same interaction pattern as flags — dismissals and accepts are data.
 
-**Implementation.** Reuse the same LLM as the Contextual Pass (Sonnet 4.6) with a separate prompt and structured output schema.
+**Implementation.** Reuse the same LLM as the Contextual Pass (Gemini 3.5 Flash Lite) with a separate prompt and structured output schema.
 
 ---
 
@@ -251,7 +251,7 @@ The current pipeline detects bias but does not propose alternatives. A dedicated
 
 **Architecturally this is not a new agent.** It is the existing drift-check stage (already used in Feedback Checkpoint to compare interview feedback against JD criteria) with a swapped reference document — the promotion rubric instead of the JD. Same pattern, different reference corpus. The rubric is the promotion analogue of a role's JD criteria: seeded now for the rubric, while JD criteria are AI-drafted with a manager-confirm gate (JD Studio, #122).
 
-**Historical peer feedback (corroborating evidence).** UBS has an existing feedback system where employees can request feedback from anyone working with them — colleagues, managers, etc. — collected as three free-text fields stored in a relational database. The Promotion Writeup surfaces this alongside the rubric coverage as *corroborating evidence*: for each rubric criterion, whether peers evidence it — so a manager sees when peers already supply the evidence a writeup omits. This is not a second engine pass; the peer corroboration is **mocked as synthetic data** in MVP (a fact about the employee, not the writeup). Integration with the actual UBS feedback system, and inferring corroboration live, are post-MVP.
+**Historical peer feedback (corroborating evidence).** The organisation has an existing feedback system where employees can request feedback from anyone working with them — colleagues, managers, etc. — collected as three free-text fields stored in a relational database. The Promotion Writeup surfaces this alongside the rubric coverage as *corroborating evidence*: for each rubric criterion, whether peers evidence it — so a manager sees when peers already supply the evidence a writeup omits. This is not a second engine pass; the peer corroboration is **mocked as synthetic data** in MVP (a fact about the employee, not the writeup). Integration with the actual UBS feedback system, and inferring corroboration live, are post-MVP.
 
 The Recommendations Agent runs on promotion-workflow flags the same way it does for JDs and feedback — same threshold, same principles.
 
@@ -283,7 +283,7 @@ Consistent technical naming across diagrams and documentation:
 
 ### Model strategy
 
-Production path uses Sonnet 4.6 (Contextual Pass, Recommendations) and Haiku 4.5 (Judge). A **side-by-side comparison evaluation** against DeepSeek (and optionally one other model) is run on a fixed eval set to report cost-per-flag and agreement rate. This evaluation does not affect the MVP production path — model swap is not in MVP scope. The Multi-Model Gateway remains a future-vision component.
+Production path uses Gemini 3.5 Flash Lite (Contextual Pass, Recommendations) and Gemini 3.5 Flash Lite (Judge). A **side-by-side comparison evaluation** against DeepSeek (and optionally one other model) is run on a fixed eval set to report cost-per-flag and agreement rate. This evaluation does not affect the MVP production path — model swap is not in MVP scope. The Multi-Model Gateway remains a future-vision component.
 
 ---
 
@@ -311,11 +311,11 @@ The rejected-resume leaderboard is **not confirmed to be within MVP**. High effo
 
 State management is **backend-resident**, not frontend-transient.
 
-Reasoning: the agentic flow runs on the backend and must know what has been dismissed before it streams new flags or makes redundant Sonnet calls; frontend state breaks on refresh, multi-tab, and session resumption; the dismissal data is also the input to the Pattern Aggregator, so storing it in two places creates desync risk.
+Reasoning: the agentic flow runs on the backend and must know what has been dismissed before it streams new flags or makes redundant Gemini Flash calls; frontend state breaks on refresh, multi-tab, and session resumption; the dismissal data is also the input to the Pattern Aggregator, so storing it in two places creates desync risk.
 
 ### The duplicate-flag problem
 
-Dictionary scans run near-real-time. The agentic flow runs after 5 seconds of user idle. Without de-duplication, the same word can be flagged repeatedly — first by the dictionary, then again by Sonnet — even after the manager dismisses it once. This pollutes the manager's experience and corrupts the dismissal data feeding the Pattern Aggregator.
+Dictionary scans run near-real-time. The agentic flow runs after 5 seconds of user idle. Without de-duplication, the same word can be flagged repeatedly — first by the dictionary, then again by Gemini Flash — even after the manager dismisses it once. This pollutes the manager's experience and corrupts the dismissal data feeding the Pattern Aggregator.
 
 ### Flag signature
 
@@ -394,7 +394,7 @@ A manager who rewrites their own version that avoids the flag is arguably a *bet
 
 **Adoption Rate = (States 1 + 2 + 3) / total flags raised.**
 
-Phrased for UBS audiences: *"In X% of cases where the tool flagged bias-coded language, the language was removed or revised in the final submission."* This avoids over-claiming causal attribution while reporting the meaningful business outcome.
+Phrased for enterprise audiences: *"In X% of cases where the tool flagged bias-coded language, the language was removed or revised in the final submission."* This avoids over-claiming causal attribution while reporting the meaningful business outcome.
 
 ### Effectiveness vs. calibration are separate metrics
 

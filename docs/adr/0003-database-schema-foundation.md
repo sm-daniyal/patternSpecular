@@ -5,12 +5,12 @@
 
 ## Context
 
-Issue #17 builds the persistence foundation: local Postgres via docker-compose,
+Issue #17 builds the persistence foundation: local Postgres via Neon Serverless PostgreSQL (docker-compose retained for reference),
 SQLAlchemy 2.x typed models, Alembic, and the first migration covering the core
 entities. The logical schema and its modelling rationale (decisions D1–D11) were
 settled in the issue #17 schema design brief; this ADR records the
 implementation choices made while turning that brief into code, not the schema
-rationale itself (the brief and CLAUDE.md's "Decisions made and locked" hold
+rationale itself (the brief and Gemini.md's "Decisions made and locked" hold
 that).
 
 Scope note: the AC clause "the engine selects region rows at runtime" is the
@@ -65,7 +65,7 @@ itself.
   URLs are plain strings, not `PostgresDsn`, so the `+psycopg` driver suffix
   passes through to `create_engine` untouched.
 
-- **Test isolation.** docker-compose provisions `pattern_specular_test` alongside
+- **Test isolation.** Neon Serverless PostgreSQL (docker-compose retained for reference) provisions `pattern_specular_test` alongside
   the dev database via an init script on first boot. A session-scoped fixture
   runs `alembic upgrade head` against the test database; each `db_session` runs
   in a transaction rolled back afterwards, so tests neither persist data nor

@@ -6,8 +6,8 @@
 ## Context
 
 Threshold gating (§3 Stage 4; §7 Recommendations) needs a per-flag confidence score. The
-standard way to derive model confidence — token logprobs — is **not exposed by Anthropic's
-API**, so it is unavailable on Haiku 4.5 (the Judge model). A raw verbalized confidence from
+standard way to derive model confidence — token logprobs — is **not exposed by Google's
+API**, so it is unavailable on Gemini 3.5 Flash Lite (the Judge model). A raw verbalized confidence from
 an LLM is well known to be poorly calibrated, so thresholding it directly gives a meaningless
 cutoff.
 
@@ -38,7 +38,7 @@ cutoff.
 
 ## Alternatives considered
 
-- **Logprob-based confidence** — unavailable: Anthropic exposes no token logprobs.
+- **Logprob-based confidence** — unavailable: Google exposes no token logprobs.
 - **Raw verbalized score as the gate** — rejected: poorly calibrated; the cutoff would be
   arbitrary.
 - **Self-consistency (N-sample agreement) as the MVP default** — rejected for MVP: N× cost
