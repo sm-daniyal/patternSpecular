@@ -9,10 +9,10 @@ import { SurfaceContextChips } from '@/components/surface/surface-context-chips'
 import { useCheckpointSurface } from '@/components/surface/use-checkpoint-surface'
 
 const SUBMIT_LABELS = {
-  idle: 'Submit to UBS systems',
+  idle: 'Submit for review',
   submitting: 'Submitting…',
   submitted: 'Submitted',
-  error: 'Submit to UBS systems',
+  error: 'Submit for review',
 } as const
 
 /** Feedback Checkpoint (design spec §2 View 2): interview feedback checked for bias in the

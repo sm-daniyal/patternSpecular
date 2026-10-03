@@ -51,7 +51,7 @@ export function MyDocuments() {
         My documents
       </h1>
       <p className="mt-2.5 mb-6 font-sans text-body leading-relaxed text-ink-muted">
-        Everything you&apos;ve written through Pattern Mirror. Open any document
+        Everything you&apos;ve written through Pattern Specular. Open any document
         to review the saved version.
       </p>
 

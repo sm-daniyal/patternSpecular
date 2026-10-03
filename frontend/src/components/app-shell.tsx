@@ -38,7 +38,7 @@ export function AppShell() {
         <Outlet />
       </div>
       <footer className="py-4 text-center text-sm text-subtle border-t border-divider mt-auto">
-        Pattern Specular · Built by Syed
+        Pattern Specular · Built by sm-daniyal
       </footer>
     </div>
   )

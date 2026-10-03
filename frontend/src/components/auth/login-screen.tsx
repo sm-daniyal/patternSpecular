@@ -1,6 +1,6 @@
 import { useState, type FormEvent } from 'react'
 import { Link, useNavigate } from '@tanstack/react-router'
-const logo = ''
+import psLogo from '@/assets/ps-logo.svg'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { LoginError } from '@/lib/auth-client'
@@ -56,7 +56,7 @@ export function LoginScreen({
   return (
     <div className="flex min-h-screen flex-col bg-canvas">
       <header className="flex h-16 items-center gap-3.5 border-b border-border bg-surface px-6">
-        <img src={logo} alt="UBS" className="h-6 w-auto" />
+        <img src={psLogo} alt="Pattern Specular" className="h-6 w-auto" />
         <span className="h-5 w-px bg-border" aria-hidden="true" />
         <span className="font-sans text-label text-ink-muted">
           Pattern Specular
@@ -129,7 +129,7 @@ export function LoginScreen({
             — {crossLink.blurb}
           </p>
           <p className="mt-6 text-center font-sans text-micro text-ink-faint">
-            Pattern Specular · Built by Syed
+            Pattern Specular · Built by sm-daniyal
           </p>
         </div>
       </main>

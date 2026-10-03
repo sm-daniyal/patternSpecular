@@ -1,11 +1,11 @@
 import type { HTMLAttributes } from 'react'
 import { cn } from '@/lib/cn'
-import ubsLogo from '@/assets/UBS_Logo.svg'
+import psLogo from '@/assets/ps-logo.svg'
 import { Button } from '@/components/ui/button'
 import { Chip } from '@/components/ui/chip'
 
 export interface TopBarProps extends HTMLAttributes<HTMLElement> {
-  /** Surface name shown after "Pattern Mirror ·". @default "JD Studio" */
+  /** Surface name shown after "Pattern Specular ·". @default "JD Studio" */
   surface?: string
   /** Context chips (subject, role/tier, scope). */
   chips?: string[]
@@ -40,10 +40,10 @@ export function TopBar({
       {...props}
     >
       <div className="flex items-center gap-3.5">
-        <img src={ubsLogo} alt="UBS" className="h-6 w-auto" />
+        <img src={psLogo} alt="Pattern Specular" className="h-6 w-auto" />
         <span className="h-5 w-px bg-border" aria-hidden="true" />
         <span className="font-sans text-label text-ink-muted">
-          Pattern Mirror · {surface}
+          Pattern Specular · {surface}
         </span>
       </div>
       <div className="flex items-center gap-3">
