@@ -140,7 +140,14 @@ Comprehensive engineering documents are available in the [`docs/`](docs/) direct
 - [LLM-as-a-Judge Calibration](docs/architecture/llm-judge.md)
 - [Dictionary Growth Loop](docs/architecture/dictionary-growth.md)
 - [Statistical Pattern Significance](docs/architecture/pattern-significance.md)
-- [Architectural Decision Records (ADRs)](docs/adr/)
+- [Mathematical Hypergeometric Derivations](docs/architecture/statistical-proofs.md)
+- [Indian Labor Law Compliance Mapping](docs/architecture/india-lexicon-mapping.md)
+- [API Contracts & Streaming Protocol](docs/architecture/api-contracts.md)
+- [Architectural Decision Records (ADRs 0001–0017)](docs/adr/)
+  - [ADR 0014: Google Gemini 3.5 Flash Lite Migration](docs/adr/0014-google-gemini-over-anthropic-claude.md)
+  - [ADR 0015: Multi-Region Statutory Expansion](docs/adr/0015-multi-region-statutory-expansion-india.md)
+  - [ADR 0016: Cloud-Native Serverless PostgreSQL (Neon)](docs/adr/0016-cloud-native-database-neon.md)
+  - [ADR 0017: Tailwind CSS v4 Design Token Architecture](docs/adr/0017-atomic-design-token-system.md)
 
 ---
 
