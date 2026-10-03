@@ -23,3 +23,22 @@ class HealthResponse(BaseModel):
 def healthcheck(settings: Annotated[Settings, Depends(get_settings)]) -> HealthResponse:
     """Report that the service is up, with its running environment and version."""
     return HealthResponse(status="ok", app_env=settings.app_env, version=__version__)
+
+
+class ReadyResponse(BaseModel):
+    """Readiness payload indicating database connectivity."""
+
+    status: Literal["ok"]
+    database: Literal["connected"]
+    app_env: str
+
+
+@router.get("/health/ready", response_model=ReadyResponse, summary="Readiness probe")
+def readiness(settings: Annotated[Settings, Depends(get_settings)]) -> ReadyResponse:
+    """Verify database connectivity as an infrastructure readiness probe."""
+    from sqlalchemy import text
+    from pattern_specular.db.session import get_sessionmaker
+
+    with get_sessionmaker()() as session:
+        session.execute(text("SELECT 1"))
+    return ReadyResponse(status="ok", database="connected", app_env=settings.app_env)
