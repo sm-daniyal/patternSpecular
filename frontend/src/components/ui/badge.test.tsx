@@ -18,6 +18,18 @@ describe('Badge', () => {
     expect(screen.getByText('ok')).toHaveClass('bg-green-positive')
   })
 
+  it('applies the amber tone', () => {
+    render(<Badge tone="amber">warning</Badge>)
+    expect(screen.getByText('warning')).toHaveClass('bg-amber-secondary')
+  })
+
+  it('applies the region tone with font-mono', () => {
+    render(<Badge tone="region">IN</Badge>)
+    const badge = screen.getByText('IN')
+    expect(badge).toHaveClass('bg-ink')
+    expect(badge).toHaveClass('font-mono')
+  })
+
   it('merges a caller className with the variant classes', () => {
     render(<Badge className="custom-class">2</Badge>)
     const badge = screen.getByText('2')
