@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate, useSearch } from '@tanstack/react-router'
 import {
   CATEGORY_LABELS,
@@ -26,11 +26,29 @@ const SUBMIT_LABELS = {
 } as const
 
 export function JdStudio() {
-  // A document opened from My Documents (#69) arrives as ?doc=<id>; absent for a fresh draft.
+  // A document opened from My Documents (#69) arrives as ?doc=<id>; fallback to active draft in sessionStorage
   const { doc } = useSearch({ strict: false })
+  const activeDraftId = useMemo(() => {
+    if (doc) return doc
+    return sessionStorage.getItem('active_jd_draft_id') ?? undefined
+  }, [doc])
+
   const navigate = useNavigate()
-  const session = useDocumentSession('jd', doc)
+  const session = useDocumentSession('jd', activeDraftId)
   const [flags, setFlags] = useState<CitedFlag[]>([])
+
+  // Store active draft ID in sessionStorage so switching tabs preserves the document
+  useEffect(() => {
+    if (session.documentId && session.submitState !== 'submitted') {
+      sessionStorage.setItem('active_jd_draft_id', session.documentId)
+    }
+  }, [session.documentId, session.submitState])
+
+  function handleStartNew() {
+    sessionStorage.removeItem('active_jd_draft_id')
+    window.location.href = '/jd-studio'
+  }
+
   // Publishing a JD confirms its drift criteria first (#122); the modal drafts them, the manager
   // edits, and confirming persists the set and then submits the document.
   const [confirmOpen, setConfirmOpen] = useState(false)
@@ -135,6 +153,14 @@ export function JdStudio() {
             This is your own data — visible only to you.
           </span>
           <Button
+            variant="ghost"
+            size="md"
+            onClick={handleStartNew}
+            className="text-ink-muted hover:text-ink cursor-pointer"
+          >
+            New draft
+          </Button>
+          <Button
             variant="primary"
             size="md"
             onClick={() => setConfirmOpen(true)}
@@ -157,6 +183,7 @@ export function JdStudio() {
           onClose={() => setConfirmOpen(false)}
           onConfirmed={() => {
             setConfirmOpen(false)
+            sessionStorage.removeItem('active_jd_draft_id')
             session.submit()
           }}
         />
