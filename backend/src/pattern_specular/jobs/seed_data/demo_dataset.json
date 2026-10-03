@@ -2,21 +2,39 @@
   "managers": [
     {
       "external_user_id": "demo-manager-1",
-      "legal_name": "Alex Tan",
-      "email": "alex.tan@example.com",
-      "department": "Markets"
+      "legal_name": "SM Daniyal",
+      "email": "sm.daniyal@example.com",
+      "department": "Engineering"
     },
     {
       "external_user_id": "demo-manager-2",
-      "legal_name": "Priya Sharma",
-      "email": "priya.sharma@example.com",
-      "department": "Technology"
+      "legal_name": "Areesha Naaz",
+      "email": "areesha.naaz@example.com",
+      "department": "Engineering"
     },
     {
       "external_user_id": "demo-manager-3",
-      "legal_name": "Marcus Wong",
-      "email": "marcus.wong@example.com",
-      "department": "Operations & Compliance"
+      "legal_name": "Patrick Jane",
+      "email": "patrick.jane@example.com",
+      "department": "Investigations"
+    },
+    {
+      "external_user_id": "demo-manager-4",
+      "legal_name": "Wayne Rigsby",
+      "email": "wayne.rigsby@example.com",
+      "department": "Operations"
+    },
+    {
+      "external_user_id": "demo-manager-5",
+      "legal_name": "Kimbal Cho",
+      "email": "kimbal.cho@example.com",
+      "department": "Compliance"
+    },
+    {
+      "external_user_id": "demo-manager-6",
+      "legal_name": "Grace Van Pelt",
+      "email": "grace.vanpelt@example.com",
+      "department": "Data Analytics"
     }
   ],
   "subjects": [

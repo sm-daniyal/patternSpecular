@@ -47,8 +47,8 @@ DEMO_HR_EXTERNAL_ID = "demo-hr-1"
 # more than one without touching this file.
 _HR_USER = UserSeed(
     external_user_id=DEMO_HR_EXTERNAL_ID,
-    legal_name="Jordan Lee",
-    email="jordan.lee@example.com",
+    legal_name="Teresa Lisbon",
+    email="teresa.lisbon@example.com",
     department="Human Resources",
     role=UserRole.hr,
 )
