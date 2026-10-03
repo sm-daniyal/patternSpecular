@@ -30,6 +30,7 @@ export function AppShell() {
     <div className="min-h-screen bg-canvas flex flex-col">
       <TopBar
         surface={surface}
+        user={user}
         initials={user?.initials ?? ''}
         onLogout={handleLogout}
       />
