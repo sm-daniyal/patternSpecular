@@ -37,16 +37,17 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Install uv
-        uses: astral-sh/setup-uv@v5
+      - name: Set up Python
+        uses: actions/setup-python@v5
         with:
-          enable-cache: true
-          cache-dependency-glob: backend/pyproject.toml
+          python-version: "3.12"
 
       - name: Install dependencies
         working-directory: backend
         run: |
-          uv pip install --system -e ".[dev]" "https://github.com/explosion/spacy-models/releases/download/en_core_web_sm-3.8.0/en_core_web_sm-3.8.0-py3-none-any.whl"
+          python -m pip install --upgrade pip
+          pip install -e ".[dev]"
+          pip install "https://github.com/explosion/spacy-models/releases/download/en_core_web_sm-3.8.0/en_core_web_sm-3.8.0-py3-none-any.whl"
 
       - name: Lint (ruff)
         working-directory: backend
