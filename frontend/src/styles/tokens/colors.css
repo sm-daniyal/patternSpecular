@@ -1,12 +1,12 @@
-/* Pattern Specular — modern colour tokens */
+/* Pattern Specular — Rosewood & Dark Peach colour tokens */
 
 :root {
-  /* Brand vibrant orange */
-  --red-primary: #ff5500;
-  --red-wordmark: #f04e00;
-  --red-line: #ff5500;
-  --red-tint: #fff2ec;
-  --red-press: #e04a00;
+  /* Brand Rosewood / Dark Peach */
+  --red-primary: #b83a58;
+  --red-wordmark: #a82e4b;
+  --red-line: #b83a58;
+  --red-tint: #fbf2f4;
+  --red-press: #9c2742;
 
   /* Semantic flag accents */
   --amber-contextual: #d97706;
@@ -16,17 +16,17 @@
   --purple-pattern: #8b5cf6;
 
   /* Ink */
-  --ink: #111827;
-  --ink-muted: #6b7280;
-  --ink-faint: #9ca3af;
+  --ink: #1e1317;
+  --ink-muted: #6e5860;
+  --ink-faint: #a69299;
 
-  /* Surfaces — distinct contrasting shades */
-  --canvas: #f1f2f4;
+  /* Surfaces — distinct contrasting rosewood-tinted shades */
+  --canvas: #f7f3f4;
   --surface: #ffffff;
-  --surface-alt: #f8f9fa;
-  --chip-track: #e5e7eb;
-  --border: #e2e4e8;
-  --border-warm: #d8dadf;
+  --surface-alt: #fcf8f9;
+  --chip-track: #f0e6e9;
+  --border: #ebdce2;
+  --border-warm: #e5d3da;
 
   /* Semantic aliases */
   --text-heading: var(--ink);
