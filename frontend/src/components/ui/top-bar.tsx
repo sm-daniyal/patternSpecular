@@ -61,11 +61,14 @@ export function TopBar({
       )}
       {...props}
     >
-      <div className="flex items-center gap-3.5">
+      <div className="flex items-center gap-3">
         <img src={psLogo} alt="Pattern Specular" className="h-6 w-auto" />
-        <span className="h-5 w-px bg-border" aria-hidden="true" />
+        <span className="font-logo text-[17px] font-bold tracking-tight text-ink">
+          Pattern Specular
+        </span>
+        <span className="h-4 w-px bg-border" aria-hidden="true" />
         <span className="font-sans text-label text-ink-muted">
-          Pattern Specular · {surface}
+          {surface}
         </span>
       </div>
       <div className="flex items-center gap-3">

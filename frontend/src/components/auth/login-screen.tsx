@@ -55,10 +55,9 @@ export function LoginScreen({
 
   return (
     <div className="flex min-h-screen flex-col bg-canvas">
-      <header className="flex h-16 items-center gap-3.5 border-b border-border bg-surface px-6">
+      <header className="flex h-16 items-center gap-3 border-b border-border bg-surface px-6">
         <img src={psLogo} alt="Pattern Specular" className="h-6 w-auto" />
-        <span className="h-5 w-px bg-border" aria-hidden="true" />
-        <span className="font-sans text-label text-ink-muted">
+        <span className="font-logo text-[17px] font-bold tracking-tight text-ink">
           Pattern Specular
         </span>
       </header>
@@ -66,7 +65,7 @@ export function LoginScreen({
       <main className="flex flex-1 flex-col items-center justify-center px-6">
         <div className="w-full max-w-md">
           <div className="rounded-card border border-border bg-surface px-10 py-9 shadow-ring-card">
-            <h1 className="text-center font-serif text-title text-ink">
+            <h1 className="text-center font-logo text-title font-bold tracking-tight text-ink">
               Greetings
             </h1>
             <p className="mt-2 text-center font-sans text-body-sm text-ink-muted">

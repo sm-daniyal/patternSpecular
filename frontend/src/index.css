@@ -58,6 +58,7 @@
   --font-sans: var(--font-sans);
   --font-serif: var(--font-serif);
   --font-display: var(--font-display);
+  --font-logo: var(--font-logo);
 
   /* Type scale */
   --text-display: var(--text-display);
