@@ -62,13 +62,13 @@ export function LoginScreen({
 
       <main className="flex flex-1 flex-col items-center justify-center px-6">
         <div className="w-full max-w-md">
-          <div className="rounded-card border border-border bg-surface px-10 py-10 shadow-sm">
-            <h1 className="text-center font-logo text-2xl font-black tracking-tight text-ink">
+          <div className="rounded-card border border-border bg-surface px-10 py-9 shadow-ring-card">
+            <h1 className="text-center font-serif text-title text-ink">
               Greetings
             </h1>
             <p className="mt-2 text-center font-sans text-body-sm text-ink-muted">
               Sign in to the{' '}
-              <span className="font-bold text-red-primary">
+              <span className="font-semibold text-red-primary">
                 {portalLabel}
               </span>
             </p>

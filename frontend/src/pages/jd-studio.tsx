@@ -96,8 +96,8 @@ export function JdStudio() {
   const submitted = session.submitState === 'submitted' || readOnly
 
   return (
-    <main className="flex h-[calc(100vh-7rem)] flex-col bg-canvas">
-      <div className="grid min-h-0 flex-1 grid-cols-[60%_40%]">
+    <main className="flex h-[calc(100vh-7rem)] flex-col bg-surface">
+      <div className="grid min-h-0 flex-1 grid-cols-[58%_42%]">
         <SurfaceEditorPane
           session={session}
           editorRef={editorRef}
@@ -112,7 +112,7 @@ export function JdStudio() {
           onClose={() => navigate({ to: '/pattern-dashboard' })}
         />
 
-        <aside className="overflow-auto border-l border-border bg-surface-alt p-6">
+        <aside className="overflow-auto bg-surface-alt p-5">
           <CategorySummary items={categoryItems} />
           <hr className="my-4 border-border" />
           <div className="mb-1 flex items-center gap-2">
