@@ -1,0 +1,438 @@
+"""The /documents endpoints: the draft lifecycle (create, restore, autosave, submit) and
+the re-check stream.
+
+The lifecycle tests round-trip through the real CRUD path. The re-check test substitutes the
+streaming service with fixed events to pin the transport and the recheck trigger without a live
+engine run; the re-surfacing behaviour over the real engine is covered in the service test, and
+the dismissal-clearing side effect is asserted directly since the handler commits it before the
+stream opens.
+"""
+
+import uuid
+from collections.abc import Iterator
+from typing import Any
+
+import pytest
+from fastapi.testclient import TestClient
+from sqlalchemy import func, select
+from sqlalchemy.orm import Session
+
+from pattern_specular.api import documents
+from pattern_specular.api.deps import get_current_user
+from pattern_specular.db.session import get_session
+from pattern_specular.main import create_app
+from pattern_specular.models.documents import AnalysisRun, Document
+from pattern_specular.models.engine import FlagDismissal
+from pattern_specular.models.enums import AnalysisRunStatus, AnalysisTrigger, DocType, SubjectType
+from pattern_specular.models.identity import Subject, User
+from pattern_specular.models.jd_criteria import JdCriterion
+from pattern_specular.models.peer_corroboration import PeerCorroboration
+from pattern_specular.models.promotion_rubric import PromotionRubricCriterion
+from pattern_specular.services.streaming_analysis import RunCompleted, StageCompleted
+
+pytestmark = pytest.mark.db
+
+
+@pytest.fixture
+def owner(db_session: Session) -> User:
+    user = User(
+        external_user_id="recheck-api-manager",
+        legal_name="Recheck API Manager",
+        email="recheck.api@example.com",
+    )
+    db_session.add(user)
+    db_session.flush()
+    return user
+
+
+@pytest.fixture
+def documents_client(db_session: Session, owner: User) -> Iterator[TestClient]:
+    app = create_app()
+    app.dependency_overrides[get_session] = lambda: db_session
+    app.dependency_overrides[get_current_user] = lambda: owner
+    with TestClient(app) as client:
+        yield client
+    app.dependency_overrides.clear()
+
+
+def test_create_returns_an_empty_draft(documents_client: TestClient) -> None:
+    response = documents_client.post("/documents", json={"doc_type": "jd"})
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["id"]
+    assert body["doc_type"] == "jd"
+    assert body["status"] == "draft"
+    assert body["content"] == ""
+    assert body["title"] is None
+
+
+def test_list_returns_the_owners_documents_without_content(
+    documents_client: TestClient, db_session: Session, owner: User
+) -> None:
+    mine = Document(
+        owner_id=owner.id,
+        doc_type=DocType.jd,
+        title="Senior Engineer",
+        role_title="Engineering",
+        content="draft text",
+    )
+    other = User(
+        external_user_id="documents-list-other",
+        legal_name="Documents List Other",
+        email="documents.list.other@example.com",
+    )
+    db_session.add_all([mine, other])
+    db_session.flush()
+    db_session.add(Document(owner_id=other.id, doc_type=DocType.jd, content="hidden"))
+    db_session.flush()
+
+    response = documents_client.get("/documents")
+
+    assert response.status_code == 200
+    body = response.json()
+    assert [item["id"] for item in body] == [str(mine.id)]
+    summary = body[0]
+    assert summary["title"] == "Senior Engineer"
+    assert summary["role_title"] == "Engineering"
+    assert summary["status"] == "draft"
+    assert summary["created_at"]
+    assert "content" not in summary
+
+
+def test_autosave_round_trips_through_get(documents_client: TestClient) -> None:
+    doc_id = documents_client.post("/documents", json={"doc_type": "jd"}).json()["id"]
+
+    patched = documents_client.patch(
+        f"/documents/{doc_id}",
+        json={"title": "Senior Engineer", "content": "We want a digital native."},
+    )
+    assert patched.status_code == 200
+
+    restored = documents_client.get(f"/documents/{doc_id}").json()
+    assert restored["title"] == "Senior Engineer"
+    assert restored["content"] == "We want a digital native."
+    assert restored["status"] == "draft"
+
+
+def test_autosave_persists_no_analysis_run(
+    documents_client: TestClient, db_session: Session
+) -> None:
+    doc_id = documents_client.post("/documents", json={"doc_type": "jd"}).json()["id"]
+
+    documents_client.patch(f"/documents/{doc_id}", json={"content": "We want a digital native."})
+
+    runs = db_session.scalar(
+        select(func.count())
+        .select_from(AnalysisRun)
+        .where(AnalysisRun.document_id == uuid.UUID(doc_id))
+    )
+    assert runs == 0
+
+
+def test_submit_transitions_and_captures_final_text(
+    documents_client: TestClient, db_session: Session
+) -> None:
+    doc_id = documents_client.post("/documents", json={"doc_type": "jd"}).json()["id"]
+    documents_client.patch(f"/documents/{doc_id}", json={"content": "draft text"})
+
+    response = documents_client.post(f"/documents/{doc_id}/submit", json={"content": "final text"})
+
+    assert response.status_code == 200
+    assert response.json()["status"] == "submitted"
+
+    document = db_session.get(Document, uuid.UUID(doc_id))
+    assert document is not None
+    assert document.submitted_content == "final text"
+    assert document.submitted_at is not None
+
+
+def test_fetching_an_unknown_document_is_rejected(documents_client: TestClient) -> None:
+    response = documents_client.get(f"/documents/{uuid.uuid4()}")
+
+    assert response.status_code == 404
+
+
+def test_autosave_of_another_users_document_is_rejected(
+    documents_client: TestClient, db_session: Session
+) -> None:
+    other = User(
+        external_user_id="documents-other-manager",
+        legal_name="Documents Other Manager",
+        email="documents.other@example.com",
+    )
+    db_session.add(other)
+    db_session.flush()
+    foreign = Document(owner_id=other.id, doc_type=DocType.jd, content="text")
+    db_session.add(foreign)
+    db_session.flush()
+
+    response = documents_client.patch(f"/documents/{foreign.id}", json={"content": "x"})
+
+    assert response.status_code == 404
+
+
+def _dismissal_on(db_session: Session, document: Document) -> FlagDismissal:
+    dismissal = FlagDismissal(
+        document_id=document.id,
+        rule_id=None,
+        normalised_span="digital native",
+        sentence_fingerprint="f" * 64,
+        active=True,
+    )
+    db_session.add(dismissal)
+    db_session.flush()
+    return dismissal
+
+
+def test_feedback_context_returns_criteria_subject_and_role(
+    documents_client: TestClient, db_session: Session, owner: User
+) -> None:
+    jd = Document(owner_id=owner.id, doc_type=DocType.jd, role_title="Analyst", content="jd")
+    db_session.add(jd)
+    db_session.flush()
+    db_session.add_all(
+        [
+            JdCriterion(jd_document_id=jd.id, text="Python proficiency", position=0),
+            JdCriterion(jd_document_id=jd.id, text="Strong SQL", position=1),
+        ]
+    )
+    subject = Subject(subject_type=SubjectType.candidate, legal_name="Jordan Blake")
+    db_session.add(subject)
+    db_session.flush()
+    feedback = Document(
+        owner_id=owner.id,
+        doc_type=DocType.feedback,
+        role_title="Analyst",
+        reference_jd_id=jd.id,
+        subject_id=subject.id,
+        content="fb",
+    )
+    db_session.add(feedback)
+    db_session.flush()
+
+    response = documents_client.get(f"/documents/{feedback.id}/feedback-context")
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["role_title"] == "Analyst"
+    assert body["subject_id"] == str(subject.id)
+    assert body["subject_name"] == "Jordan Blake"
+    assert body["criteria"] == ["Python proficiency", "Strong SQL"]
+
+
+def test_feedback_context_without_a_reference_returns_no_criteria(
+    documents_client: TestClient, db_session: Session, owner: User
+) -> None:
+    feedback = Document(owner_id=owner.id, doc_type=DocType.feedback, content="fb")
+    db_session.add(feedback)
+    db_session.flush()
+
+    response = documents_client.get(f"/documents/{feedback.id}/feedback-context")
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["criteria"] == []
+    assert body["subject_id"] is None
+    assert body["subject_name"] is None
+
+
+def test_feedback_context_of_another_users_document_is_rejected(
+    documents_client: TestClient, db_session: Session
+) -> None:
+    other = User(
+        external_user_id="feedback-context-other",
+        legal_name="Feedback Context Other",
+        email="feedback.context.other@example.com",
+    )
+    db_session.add(other)
+    db_session.flush()
+    foreign = Document(owner_id=other.id, doc_type=DocType.feedback, content="fb")
+    db_session.add(foreign)
+    db_session.flush()
+
+    response = documents_client.get(f"/documents/{foreign.id}/feedback-context")
+
+    assert response.status_code == 404
+
+
+def test_promotion_context_returns_rubric_subject_level_and_corroboration(
+    documents_client: TestClient, db_session: Session, owner: User
+) -> None:
+    level = "Director — Delivery Engineering"
+    db_session.add_all(
+        [
+            PromotionRubricCriterion(level_label=level, text="Owns delivery", position=0),
+            PromotionRubricCriterion(level_label=level, text="Cross-team impact", position=1),
+        ]
+    )
+    subject = Subject(subject_type=SubjectType.employee, legal_name="Nadia Farouk")
+    db_session.add(subject)
+    db_session.flush()
+    db_session.add_all(
+        [
+            PeerCorroboration(
+                subject_id=subject.id,
+                criterion="Owns delivery",
+                corroborated=True,
+                evidence="owns the pipeline end to end",
+                position=0,
+            ),
+            PeerCorroboration(
+                subject_id=subject.id,
+                criterion="Cross-team impact",
+                corroborated=False,
+                evidence=None,
+                position=1,
+            ),
+        ]
+    )
+    promotion = Document(
+        owner_id=owner.id,
+        doc_type=DocType.promotion,
+        role_title=level,
+        subject_id=subject.id,
+        content="wu",
+    )
+    db_session.add(promotion)
+    db_session.flush()
+
+    response = documents_client.get(f"/documents/{promotion.id}/promotion-context")
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["role_title"] == level
+    assert body["subject_id"] == str(subject.id)
+    assert body["subject_name"] == "Nadia Farouk"
+    assert body["criteria"] == ["Owns delivery", "Cross-team impact"]
+    assert body["corroboration"] == [
+        {
+            "criterion": "Owns delivery",
+            "corroborated": True,
+            "evidence": "owns the pipeline end to end",
+        },
+        {"criterion": "Cross-team impact", "corroborated": False, "evidence": None},
+    ]
+
+
+def test_promotion_context_without_a_rubric_returns_no_criteria(
+    documents_client: TestClient, db_session: Session, owner: User
+) -> None:
+    promotion = Document(owner_id=owner.id, doc_type=DocType.promotion, content="wu")
+    db_session.add(promotion)
+    db_session.flush()
+
+    response = documents_client.get(f"/documents/{promotion.id}/promotion-context")
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["criteria"] == []
+    assert body["corroboration"] == []
+    assert body["subject_id"] is None
+
+
+def test_promotion_context_of_another_users_document_is_rejected(
+    documents_client: TestClient, db_session: Session
+) -> None:
+    other = User(
+        external_user_id="promotion-context-other",
+        legal_name="Promotion Context Other",
+        email="promotion.context.other@example.com",
+    )
+    db_session.add(other)
+    db_session.flush()
+    foreign = Document(owner_id=other.id, doc_type=DocType.promotion, content="wu")
+    db_session.add(foreign)
+    db_session.flush()
+
+    response = documents_client.get(f"/documents/{foreign.id}/promotion-context")
+
+    assert response.status_code == 404
+
+
+def test_recheck_clears_dismissals_and_streams_a_terminal_done(
+    documents_client: TestClient, db_session: Session, owner: User, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    document = Document(owner_id=owner.id, doc_type=DocType.jd, content="text")
+    db_session.add(document)
+    db_session.flush()
+    dismissal = _dismissal_on(db_session, document)
+
+    captured: dict[str, Any] = {}
+
+    def fake_stream(*args: object, **kwargs: object) -> Iterator[object]:
+        captured.update(kwargs)
+        yield StageCompleted(stage="dictionary")
+        yield RunCompleted(
+            analysis_run_id=uuid.uuid4(), status=AnalysisRunStatus.complete, flag_count=0
+        )
+
+    monkeypatch.setattr(documents, "stream_analysis_events", fake_stream)
+
+    response = documents_client.post(f"/documents/{document.id}/recheck", json={"content": "text"})
+
+    assert response.status_code == 200
+    assert response.headers["content-type"].startswith("text/event-stream")
+    assert "event: stage" in response.text
+    assert "event: done" in response.text
+    assert captured["trigger"] is AnalysisTrigger.recheck
+
+    db_session.refresh(dismissal)
+    assert dismissal.active is False
+
+
+def test_recheck_of_feedback_attaches_the_drift_check(
+    documents_client: TestClient, db_session: Session, owner: User, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    jd = Document(owner_id=owner.id, doc_type=DocType.jd, role_title="Analyst", content="jd")
+    db_session.add(jd)
+    db_session.flush()
+    db_session.add(JdCriterion(jd_document_id=jd.id, text="Python proficiency", position=0))
+    feedback = Document(
+        owner_id=owner.id, doc_type=DocType.feedback, reference_jd_id=jd.id, content="fb"
+    )
+    db_session.add(feedback)
+    db_session.flush()
+
+    captured: dict[str, Any] = {}
+
+    def fake_stream(*args: object, **kwargs: object) -> Iterator[object]:
+        captured.update(kwargs)
+        yield RunCompleted(
+            analysis_run_id=uuid.uuid4(), status=AnalysisRunStatus.complete, flag_count=0
+        )
+
+    monkeypatch.setattr(documents, "stream_analysis_events", fake_stream)
+
+    response = documents_client.post(f"/documents/{feedback.id}/recheck", json={"content": "fb"})
+
+    assert response.status_code == 200
+    reference = captured["drift_reference"]
+    assert reference is not None
+    assert reference.reference_text == "Python proficiency"
+    assert captured["drift_client"] is captured["contextual_client"]
+
+
+def test_recheck_of_an_unknown_document_is_rejected(documents_client: TestClient) -> None:
+    response = documents_client.post(f"/documents/{uuid.uuid4()}/recheck", json={"content": "text"})
+
+    assert response.status_code == 404
+
+
+def test_recheck_of_another_users_document_is_rejected(
+    documents_client: TestClient, db_session: Session
+) -> None:
+    other = User(
+        external_user_id="recheck-other-manager",
+        legal_name="Recheck Other Manager",
+        email="recheck.other@example.com",
+    )
+    db_session.add(other)
+    db_session.flush()
+    foreign = Document(owner_id=other.id, doc_type=DocType.jd, content="text")
+    db_session.add(foreign)
+    db_session.flush()
+
+    response = documents_client.post(f"/documents/{foreign.id}/recheck", json={"content": "text"})
+
+    assert response.status_code == 404

@@ -1,0 +1,841 @@
+"""The streaming pipeline service: per-stage events, persistence, supersede, failure.
+
+The happy-path and supersede tests drive the real default graph over the migration-seeded
+SG lexicon (so ``digital native`` resolves to a flag); the failure test substitutes a graph
+that raises mid-stream. All are ``db``-marked because the run and its flags are persisted.
+"""
+
+import uuid
+from collections.abc import Iterator
+from decimal import Decimal
+from types import SimpleNamespace
+from typing import Any
+
+import pytest
+from sqlalchemy import select
+from sqlalchemy.orm import Session
+
+from pattern_specular.engine.candidate_flag import CandidateFlag
+from pattern_specular.engine.contextual_pass import (
+    ContextualFlag,
+    ContextualPassResult,
+    DictionaryFlagReview,
+)
+from pattern_specular.engine.drift import DriftCriterionFinding, DriftResult
+from pattern_specular.engine.fingerprint import compute_sentence_fingerprint
+from pattern_specular.engine.judge import JudgeRubric, JudgeSample
+from pattern_specular.engine.lemmatiser import lemma_key
+from pattern_specular.engine.recommendations import Recommendation, RecommendationsResult
+from pattern_specular.engine.state import DriftReference, FlagRecommendation
+from pattern_specular.models.audit import AgentRun
+from pattern_specular.models.dictionary import Dictionary
+from pattern_specular.models.documents import AnalysisRun, Document
+from pattern_specular.models.drift import DriftFinding, DriftFindingDismissal
+from pattern_specular.models.engine import Flag, FlagDismissal
+from pattern_specular.models.enums import (
+    AgentName,
+    AnalysisRunStatus,
+    AnalysisTrigger,
+    BiasCategory,
+    DocType,
+    FlagScope,
+    FlagSourceStage,
+    FlagVerdict,
+    ReferenceKind,
+)
+from pattern_specular.models.identity import User
+from pattern_specular.services import streaming_analysis
+from pattern_specular.services.interactions import deactivate_document_dismissals
+from pattern_specular.services.run_registry import RunRegistry
+from pattern_specular.services.streaming_analysis import (
+    FlagSurfaced,
+    RunCompleted,
+    StageCompleted,
+    stream_analysis_events,
+)
+
+pytestmark = pytest.mark.db
+
+
+def test_attach_recommendations_skips_a_flag_that_did_not_surface() -> None:
+    """A recommendation for a candidate that never surfaced (a superseded run) is dropped."""
+    candidate = CandidateFlag(
+        source_stage=FlagSourceStage.contextual,
+        category=BiasCategory.age,
+        raw_span="young rockstar",
+    )
+    recommendation = FlagRecommendation(
+        flag=candidate,
+        rationale="r",
+        alternatives=["recent graduate", "early-career hire"],
+    )
+
+    # No surfaced flag matches the candidate, so nothing is written and no error is raised.
+    assert streaming_analysis._attach_recommendations({}, [recommendation]) is None
+
+
+class _FakeContextualClient:
+    """Deterministic stand-in for the Instructor client: fixed flags, recorded usage."""
+
+    def __init__(self, result: ContextualPassResult) -> None:
+        self._result = result
+        self._completion = SimpleNamespace(usage=SimpleNamespace(input_tokens=90, output_tokens=30))
+
+    def create_with_completion(self, **kwargs: Any) -> tuple[Any, Any]:
+        return self._result, self._completion
+
+
+class _FakeJudgeClient:
+    """Deterministic stand-in for the Judge client: the same rubric sample every call."""
+
+    def __init__(self, sample: JudgeSample) -> None:
+        self._sample = sample
+        self._completion = SimpleNamespace(usage=SimpleNamespace(input_tokens=70, output_tokens=15))
+
+    def create_with_completion(self, **kwargs: Any) -> tuple[Any, Any]:
+        return self._sample, self._completion
+
+
+def _judge_sample(*, biased: bool) -> JudgeSample:
+    """A single-flag rubric sample whose derived verdict is ``biased`` (flag_id 1)."""
+    return JudgeSample(
+        rubrics=[
+            JudgeRubric(
+                flag_id=1,
+                references_characteristic=biased,
+                reference_style="coded" if biased else "none",
+                gdor_plausible=False,
+                stated_objectively=False,
+                reasoning="r",
+            )
+        ]
+    )
+
+
+class _FakeRecommendationsClient:
+    """Deterministic stand-in for the Recommendations client: fixed rewrites, recorded usage."""
+
+    def __init__(self, result: RecommendationsResult) -> None:
+        self._result = result
+        self._completion = SimpleNamespace(
+            usage=SimpleNamespace(input_tokens=120, output_tokens=60)
+        )
+
+    def create_with_completion(self, **kwargs: Any) -> tuple[Any, Any]:
+        return self._result, self._completion
+
+
+_BIASED_TEXT = "We want a digital native for this role."
+# A dictionary hit ("digital native") plus a phrase the fake Contextual Pass flags ("culture fit").
+_MIXED_TEXT = "We want a digital native who is a strong culture fit."
+
+
+def _culture_fit_contextual() -> _FakeContextualClient:
+    return _FakeContextualClient(
+        ContextualPassResult(
+            new_flags=[
+                ContextualFlag(
+                    raw_span="culture fit",
+                    category=BiasCategory.race,
+                    scope=FlagScope.role_specific,
+                    verdict=FlagVerdict.unacceptable,
+                    explanation="Vague 'fit' invites in-group bias.",
+                )
+            ]
+        )
+    )
+
+
+def _document(session: Session, *, content: str = _BIASED_TEXT) -> Document:
+    user = User(
+        external_user_id=f"stream-test-{uuid.uuid4()}",
+        legal_name="Stream Manager",
+        email=f"{uuid.uuid4()}@example.com",
+    )
+    session.add(user)
+    session.flush()
+    document = Document(owner_id=user.id, doc_type=DocType.jd, content=content)
+    session.add(document)
+    session.flush()
+    return document
+
+
+def test_stages_stream_then_a_verified_flag_then_a_terminal_done(db_session: Session) -> None:
+    document = _document(db_session)
+
+    events = list(
+        stream_analysis_events(
+            db_session,
+            document_id=document.id,
+            content=document.content,
+            doc_type=document.doc_type,
+            registry=RunRegistry(),
+        )
+    )
+
+    assert any(isinstance(event, StageCompleted) for event in events)
+    flags = [event for event in events if isinstance(event, FlagSurfaced)]
+    assert [flag.flag.raw_span for flag in flags] == ["digital native"]
+
+    terminal = events[-1]
+    assert isinstance(terminal, RunCompleted)
+    assert terminal.status is AnalysisRunStatus.complete
+    assert terminal.flag_count == 1
+
+    persisted = db_session.scalars(select(Flag).where(Flag.document_id == document.id)).all()
+    assert [flag.raw_span for flag in persisted] == ["digital native"]
+
+
+def _digital_native_rule(session: Session) -> Dictionary:
+    return session.scalars(
+        select(Dictionary).where(
+            Dictionary.lemma_key == "digital native", Dictionary.region_code == "SG"
+        )
+    ).one()
+
+
+def test_a_dismissed_flag_is_persisted_suppressed_with_its_reference_not_surfaced(
+    db_session: Session,
+) -> None:
+    document = _document(db_session)
+    rule = _digital_native_rule(db_session)
+    start = _BIASED_TEXT.index("digital native")
+    dismissal = FlagDismissal(
+        document_id=document.id,
+        rule_id=rule.id,
+        normalised_span="digital native",
+        sentence_fingerprint=compute_sentence_fingerprint(
+            _BIASED_TEXT, start, start + len("digital native")
+        ),
+    )
+    db_session.add(dismissal)
+    db_session.flush()
+
+    events = list(
+        stream_analysis_events(
+            db_session,
+            document_id=document.id,
+            content=document.content,
+            doc_type=document.doc_type,
+            registry=RunRegistry(),
+        )
+    )
+
+    # Suppress in UI: the dismissed flag surfaces to nobody, and the run reports no flags.
+    assert not any(isinstance(event, FlagSurfaced) for event in events)
+    terminal = events[-1]
+    assert isinstance(terminal, RunCompleted)
+    assert terminal.flag_count == 0
+
+    # Log everything: it is still persisted, marked suppressed and pointing at the dismissal.
+    persisted = db_session.scalars(select(Flag).where(Flag.document_id == document.id)).one()
+    assert persisted.raw_span == "digital native"
+    assert persisted.suppressed is True
+    assert persisted.suppressed_by_dismissal_id == dismissal.id
+    assert persisted.judge_confidence is None
+
+
+def test_recheck_resurfaces_a_previously_dismissed_flag(db_session: Session) -> None:
+    document = _document(db_session)
+    rule = _digital_native_rule(db_session)
+    start = _BIASED_TEXT.index("digital native")
+    db_session.add(
+        FlagDismissal(
+            document_id=document.id,
+            rule_id=rule.id,
+            normalised_span="digital native",
+            sentence_fingerprint=compute_sentence_fingerprint(
+                _BIASED_TEXT, start, start + len("digital native")
+            ),
+        )
+    )
+    db_session.flush()
+
+    deactivate_document_dismissals(db_session, document.id)
+    events = list(
+        stream_analysis_events(
+            db_session,
+            document_id=document.id,
+            content=document.content,
+            doc_type=document.doc_type,
+            registry=RunRegistry(),
+            trigger=AnalysisTrigger.recheck,
+        )
+    )
+
+    surfaced = [event.flag.raw_span for event in events if isinstance(event, FlagSurfaced)]
+    assert surfaced == ["digital native"]
+    run = db_session.scalars(
+        select(AnalysisRun).where(AnalysisRun.document_id == document.id)
+    ).one()
+    assert run.trigger is AnalysisTrigger.recheck
+
+
+def test_recheck_still_respects_the_judge_gate(db_session: Session) -> None:
+    # Clearing dismissals re-surfaces dismissed flags, but the Judge's confidence gate still
+    # applies: a below-threshold contextual flag stays suppressed through a re-check.
+    document = _document(db_session, content=_MIXED_TEXT)
+    judge = _FakeJudgeClient(_judge_sample(biased=False))
+
+    events = list(
+        stream_analysis_events(
+            db_session,
+            document_id=document.id,
+            content=document.content,
+            doc_type=document.doc_type,
+            registry=RunRegistry(),
+            contextual_client=_culture_fit_contextual(),
+            judge_client=judge,
+            trigger=AnalysisTrigger.recheck,
+        )
+    )
+
+    surfaced = [event.flag.raw_span for event in events if isinstance(event, FlagSurfaced)]
+    assert surfaced == ["digital native"]
+    persisted = {
+        flag.raw_span: flag
+        for flag in db_session.scalars(select(Flag).where(Flag.document_id == document.id)).all()
+    }
+    assert persisted["culture fit"].suppressed is True
+
+
+def test_a_dismissal_in_a_different_context_does_not_suppress(db_session: Session) -> None:
+    document = _document(db_session)
+    rule = _digital_native_rule(db_session)
+    # A dismissal for the same span but a fingerprint from some other sentence.
+    db_session.add(
+        FlagDismissal(
+            document_id=document.id,
+            rule_id=rule.id,
+            normalised_span="digital native",
+            sentence_fingerprint="0" * 64,
+        )
+    )
+    db_session.flush()
+
+    events = list(
+        stream_analysis_events(
+            db_session,
+            document_id=document.id,
+            content=document.content,
+            doc_type=document.doc_type,
+            registry=RunRegistry(),
+        )
+    )
+
+    surfaced = [event.flag.raw_span for event in events if isinstance(event, FlagSurfaced)]
+    assert surfaced == ["digital native"]
+    persisted = db_session.scalars(select(Flag).where(Flag.document_id == document.id)).one()
+    assert persisted.suppressed is False
+    assert persisted.suppressed_by_dismissal_id is None
+
+
+def test_clean_text_streams_no_flags_and_completes(db_session: Session) -> None:
+    document = _document(db_session, content="We value clear communication.")
+
+    events = list(
+        stream_analysis_events(
+            db_session,
+            document_id=document.id,
+            content=document.content,
+            doc_type=document.doc_type,
+            registry=RunRegistry(),
+        )
+    )
+
+    assert not any(isinstance(event, FlagSurfaced) for event in events)
+    terminal = events[-1]
+    assert isinstance(terminal, RunCompleted)
+    assert terminal.status is AnalysisRunStatus.complete
+    assert terminal.flag_count == 0
+
+
+def test_a_newer_run_supersedes_the_older_one_but_its_flags_persist(db_session: Session) -> None:
+    document = _document(db_session)
+    registry = RunRegistry()
+
+    events: list[Any] = []
+    stream = stream_analysis_events(
+        db_session,
+        document_id=document.id,
+        content=document.content,
+        doc_type=document.doc_type,
+        registry=registry,
+    )
+    for event in stream:
+        events.append(event)
+        # A newer run starts once the older one clears contextual; the Judge stage then still
+        # persists the flag (log everything) but the supersede gate stops it surfacing.
+        if isinstance(event, StageCompleted) and event.stage == "contextual":
+            registry.register(document.id, uuid.uuid4())
+
+    terminal = events[-1]
+    assert isinstance(terminal, RunCompleted)
+    assert terminal.status is AnalysisRunStatus.superseded
+
+    # Suppress in UI: the superseded run surfaced no flags to the client.
+    assert not any(isinstance(event, FlagSurfaced) for event in events)
+    # Log everything: yet the flag the engine produced was committed to the database.
+    persisted = db_session.scalars(select(Flag).where(Flag.document_id == document.id)).all()
+    assert [flag.raw_span for flag in persisted] == ["digital native"]
+
+
+class _RaisingGraph:
+    """A compiled-graph stand-in: yields one stage, then fails as a later stage would."""
+
+    def stream(self, state: Any, stream_mode: str) -> Iterator[dict[str, Any]]:
+        yield {"dictionary": {"candidate_flags": []}}
+        raise RuntimeError("contextual stage exploded")
+
+
+def test_a_failed_stage_is_logged_and_the_stream_closes_cleanly(
+    db_session: Session, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    document = _document(db_session)
+    monkeypatch.setattr(
+        streaming_analysis, "build_default_graph", lambda *args, **kwargs: _RaisingGraph()
+    )
+
+    events = list(
+        stream_analysis_events(
+            db_session,
+            document_id=document.id,
+            content=document.content,
+            doc_type=document.doc_type,
+            registry=RunRegistry(),
+        )
+    )
+
+    terminal = events[-1]
+    assert isinstance(terminal, RunCompleted)
+    assert terminal.status is AnalysisRunStatus.failed
+
+    run = db_session.scalars(
+        select(AnalysisRun).where(AnalysisRun.document_id == document.id)
+    ).one()
+    assert run.status is AnalysisRunStatus.failed
+    assert run.completed_at is not None
+
+
+def test_contextual_flags_are_verified_persisted_and_logged(db_session: Session) -> None:
+    # The fake flags a phrase present verbatim, so the Adjudicator keeps it and resolves
+    # its offsets; the dictionary may also flag, so assertions filter to contextual.
+    document = _document(db_session, content="We value a strong culture fit.")
+    fake = _FakeContextualClient(
+        ContextualPassResult(
+            new_flags=[
+                ContextualFlag(
+                    raw_span="culture fit",
+                    category=BiasCategory.race,
+                    scope=FlagScope.role_specific,
+                    verdict=FlagVerdict.unacceptable,
+                    explanation="Vague 'fit' invites in-group bias.",
+                )
+            ]
+        )
+    )
+
+    events = list(
+        stream_analysis_events(
+            db_session,
+            document_id=document.id,
+            content=document.content,
+            doc_type=document.doc_type,
+            registry=RunRegistry(),
+            contextual_client=fake,
+        )
+    )
+
+    contextual = [
+        event.flag
+        for event in events
+        if isinstance(event, FlagSurfaced) and event.flag.source_stage is FlagSourceStage.contextual
+    ]
+    assert [flag.raw_span for flag in contextual] == ["culture fit"]
+    flag = contextual[0]
+    assert flag.scope is FlagScope.role_specific
+    assert flag.citation_id is not None  # the category-level TAFEP floor citation (ADR 0006)
+    assert flag.normalised_span == "culture fit"  # derived from raw_span via the lemmatiser
+    assert flag.start_offset is not None  # the Adjudicator resolved the span
+
+    agent_run = db_session.scalars(
+        select(AgentRun).where(AgentRun.document_id == document.id)
+    ).one()
+    assert agent_run.agent_name is AgentName.contextual_pass
+    assert agent_run.prompt_tokens == 90
+    assert agent_run.analysis_run_id is not None
+
+
+def test_a_keyword_flag_ruled_acceptable_is_persisted_suppressed_not_surfaced(
+    db_session: Session,
+) -> None:
+    document = _document(db_session)  # _BIASED_TEXT -> the dictionary flags "digital native"
+    contextual = _FakeContextualClient(
+        ContextualPassResult(
+            dictionary_reviews=[
+                DictionaryFlagReview(
+                    flag_id=0,
+                    verdict=FlagVerdict.acceptable,
+                    reasoning="Refers to the product segment, not the candidate.",
+                )
+            ]
+        )
+    )
+
+    events = list(
+        stream_analysis_events(
+            db_session,
+            document_id=document.id,
+            content=document.content,
+            doc_type=document.doc_type,
+            registry=RunRegistry(),
+            contextual_client=contextual,
+        )
+    )
+
+    # Suppress in UI: the false positive the Contextual Pass cleared reaches no one.
+    assert not any(isinstance(event, FlagSurfaced) for event in events)
+    # Log everything: it is persisted with its verdict, reasoning, and no dismissal reference.
+    persisted = db_session.scalars(select(Flag).where(Flag.document_id == document.id)).one()
+    assert persisted.raw_span == "digital native"
+    assert persisted.suppressed is True
+    assert persisted.verdict is FlagVerdict.acceptable
+    assert persisted.rationale["explanation"] == "Refers to the product segment, not the candidate."
+    assert persisted.suppressed_by_dismissal_id is None
+
+
+def test_a_keyword_flag_ruled_justified_is_persisted_suppressed(db_session: Session) -> None:
+    document = _document(db_session)
+    contextual = _FakeContextualClient(
+        ContextualPassResult(
+            dictionary_reviews=[
+                DictionaryFlagReview(
+                    flag_id=0,
+                    verdict=FlagVerdict.acceptable_with_justification,
+                    reasoning="Genuine requirement, stated objectively.",
+                )
+            ]
+        )
+    )
+
+    events = list(
+        stream_analysis_events(
+            db_session,
+            document_id=document.id,
+            content=document.content,
+            doc_type=document.doc_type,
+            registry=RunRegistry(),
+            contextual_client=contextual,
+        )
+    )
+
+    assert not any(isinstance(event, FlagSurfaced) for event in events)
+    persisted = db_session.scalars(select(Flag).where(Flag.document_id == document.id)).one()
+    assert persisted.suppressed is True
+    assert persisted.verdict is FlagVerdict.acceptable_with_justification
+
+
+def test_keyword_unacceptable_and_a_new_flag_each_surface_once(db_session: Session) -> None:
+    document = _document(db_session, content=_MIXED_TEXT)
+    contextual = _FakeContextualClient(
+        ContextualPassResult(
+            dictionary_reviews=[
+                DictionaryFlagReview(
+                    flag_id=0, verdict=FlagVerdict.unacceptable, reasoning="Age proxy."
+                )
+            ],
+            new_flags=[
+                ContextualFlag(
+                    raw_span="culture fit",
+                    category=BiasCategory.race,
+                    scope=FlagScope.role_specific,
+                    verdict=FlagVerdict.unacceptable,
+                    explanation="Vague 'fit' invites in-group bias.",
+                )
+            ],
+        )
+    )
+
+    events = list(
+        stream_analysis_events(
+            db_session,
+            document_id=document.id,
+            content=document.content,
+            doc_type=document.doc_type,
+            registry=RunRegistry(),
+            contextual_client=contextual,
+        )
+    )
+
+    surfaced = sorted(event.flag.raw_span for event in events if isinstance(event, FlagSurfaced))
+    assert surfaced == ["culture fit", "digital native"]
+    # Prevent-at-source: the keyword span surfaces once, not duplicated by the LLM layer.
+    digital = db_session.scalars(
+        select(Flag).where(Flag.document_id == document.id, Flag.raw_span == "digital native")
+    ).all()
+    assert len(digital) == 1
+    assert digital[0].verdict is FlagVerdict.unacceptable
+    assert digital[0].suppressed is False
+
+
+def test_below_threshold_contextual_flag_is_persisted_suppressed_not_surfaced(
+    db_session: Session,
+) -> None:
+    document = _document(db_session, content=_MIXED_TEXT)
+    judge = _FakeJudgeClient(_judge_sample(biased=False))
+
+    events = list(
+        stream_analysis_events(
+            db_session,
+            document_id=document.id,
+            content=document.content,
+            doc_type=document.doc_type,
+            registry=RunRegistry(),
+            contextual_client=_culture_fit_contextual(),
+            judge_client=judge,
+        )
+    )
+
+    # Suppress in UI: only the deterministic dictionary flag surfaces; the low-confidence
+    # contextual flag does not.
+    surfaced = [event.flag.raw_span for event in events if isinstance(event, FlagSurfaced)]
+    assert surfaced == ["digital native"]
+
+    # Log everything: both flags are persisted, the contextual one as suppressed + scored.
+    persisted = {
+        flag.raw_span: flag
+        for flag in db_session.scalars(select(Flag).where(Flag.document_id == document.id)).all()
+    }
+    assert persisted["digital native"].suppressed is False
+    assert persisted["digital native"].judge_confidence is None
+    assert persisted["culture fit"].suppressed is True
+    # No sample judged it biased: unanimous 0/N agreement, below the 0.7 gate.
+    assert persisted["culture fit"].judge_confidence == Decimal("0.000")
+
+
+def test_above_threshold_contextual_flag_surfaces_with_its_confidence(
+    db_session: Session,
+) -> None:
+    document = _document(db_session, content=_MIXED_TEXT)
+    judge = _FakeJudgeClient(_judge_sample(biased=True))
+
+    events = list(
+        stream_analysis_events(
+            db_session,
+            document_id=document.id,
+            content=document.content,
+            doc_type=document.doc_type,
+            registry=RunRegistry(),
+            contextual_client=_culture_fit_contextual(),
+            judge_client=judge,
+        )
+    )
+
+    surfaced = {event.flag.raw_span for event in events if isinstance(event, FlagSurfaced)}
+    assert surfaced == {"digital native", "culture fit"}
+
+    kept = db_session.scalars(
+        select(Flag).where(Flag.document_id == document.id, Flag.raw_span == "culture fit")
+    ).one()
+    assert kept.suppressed is False
+    # Every sample judged it biased: unanimous agreement clears the gate.
+    assert kept.judge_confidence == Decimal("1.000")
+
+    judge_run = db_session.scalars(
+        select(AgentRun).where(
+            AgentRun.document_id == document.id, AgentRun.agent_name == AgentName.judge
+        )
+    ).one()
+    assert judge_run.analysis_run_id is not None
+
+
+def test_recommendations_attach_to_a_surfaced_contextual_flag(db_session: Session) -> None:
+    document = _document(db_session, content="We value a strong culture fit.")
+    judge = _FakeJudgeClient(_judge_sample(biased=True))
+    recommendations = _FakeRecommendationsClient(
+        RecommendationsResult(
+            recommendations=[
+                Recommendation(
+                    rationale="Vague 'fit' invites in-group bias.",
+                    alternatives=["shares our values", "aligns with the team"],
+                )
+            ]
+        )
+    )
+
+    events = list(
+        stream_analysis_events(
+            db_session,
+            document_id=document.id,
+            content=document.content,
+            doc_type=document.doc_type,
+            registry=RunRegistry(),
+            contextual_client=_culture_fit_contextual(),
+            judge_client=judge,
+            recommendations_client=recommendations,
+        )
+    )
+
+    surfaced = [
+        event.flag
+        for event in events
+        if isinstance(event, FlagSurfaced) and event.flag.source_stage is FlagSourceStage.contextual
+    ]
+    assert [flag.raw_span for flag in surfaced] == ["culture fit"]
+    assert surfaced[0].recommendations == {
+        "rationale": "Vague 'fit' invites in-group bias.",
+        "alternatives": ["shares our values", "aligns with the team"],
+    }
+
+    persisted = db_session.scalars(
+        select(Flag).where(Flag.document_id == document.id, Flag.raw_span == "culture fit")
+    ).one()
+    assert persisted.recommendations["alternatives"] == [
+        "shares our values",
+        "aligns with the team",
+    ]
+
+    rec_run = db_session.scalars(
+        select(AgentRun).where(
+            AgentRun.document_id == document.id,
+            AgentRun.agent_name == AgentName.recommendations,
+        )
+    ).one()
+    assert rec_run.analysis_run_id is not None
+
+
+class _FakeDriftClient:
+    """Deterministic stand-in for the drift client: fixed findings, recorded usage."""
+
+    def __init__(self, result: DriftResult) -> None:
+        self._result = result
+        self._completion = SimpleNamespace(
+            usage=SimpleNamespace(input_tokens=200, output_tokens=80)
+        )
+
+    def create_with_completion(self, **kwargs: Any) -> tuple[Any, Any]:
+        return self._result, self._completion
+
+
+_FEEDBACK_TEXT = "The candidate led the migration and mentored two juniors."
+
+
+def _feedback_document(db_session: Session) -> Document:
+    user = User(
+        external_user_id=f"stream-drift-{uuid.uuid4()}",
+        legal_name="Stream Drift Manager",
+        email=f"{uuid.uuid4()}@example.com",
+    )
+    db_session.add(user)
+    db_session.flush()
+    document = Document(owner_id=user.id, doc_type=DocType.feedback, content=_FEEDBACK_TEXT)
+    db_session.add(document)
+    db_session.flush()
+    return document
+
+
+def test_drift_findings_persist_when_a_reference_is_supplied(db_session: Session) -> None:
+    document = _feedback_document(db_session)
+    drift = _FakeDriftClient(
+        DriftResult(
+            findings=[
+                DriftCriterionFinding(
+                    criterion="leadership", addressed=True, evidence="led the migration"
+                ),
+                DriftCriterionFinding(criterion="stakeholder management", addressed=False),
+            ]
+        )
+    )
+
+    list(
+        stream_analysis_events(
+            db_session,
+            document_id=document.id,
+            content=document.content,
+            doc_type=document.doc_type,
+            registry=RunRegistry(),
+            drift_client=drift,
+            drift_reference=DriftReference(
+                reference_text="Show leadership and stakeholder management."
+            ),
+        )
+    )
+
+    findings = {
+        f.criterion: f
+        for f in db_session.scalars(
+            select(DriftFinding).where(DriftFinding.document_id == document.id)
+        ).all()
+    }
+    assert set(findings) == {"leadership", "stakeholder management"}
+    assert findings["leadership"].reference_kind is ReferenceKind.jd_criteria
+    assert findings["leadership"].addressed is True
+    assert findings["leadership"].evidence == "led the migration"
+    assert findings["stakeholder management"].suppressed is False
+
+
+def test_no_drift_stage_persists_nothing_without_a_client(db_session: Session) -> None:
+    document = _feedback_document(db_session)
+
+    list(
+        stream_analysis_events(
+            db_session,
+            document_id=document.id,
+            content=document.content,
+            doc_type=document.doc_type,
+            registry=RunRegistry(),
+        )
+    )
+
+    assert (
+        db_session.scalars(
+            select(DriftFinding).where(DriftFinding.document_id == document.id)
+        ).all()
+        == []
+    )
+
+
+def test_a_prior_drift_dismissal_suppresses_a_matching_criterion(db_session: Session) -> None:
+    document = _feedback_document(db_session)
+    db_session.add(
+        DriftFindingDismissal(
+            document_id=document.id,
+            reference_kind=ReferenceKind.jd_criteria,
+            normalised_criterion=lemma_key("stakeholder management"),
+            active=True,
+        )
+    )
+    db_session.flush()
+    drift = _FakeDriftClient(
+        DriftResult(
+            findings=[
+                DriftCriterionFinding(criterion="stakeholder management", addressed=False),
+                DriftCriterionFinding(
+                    criterion="mentoring", addressed=True, evidence="mentored two juniors"
+                ),
+            ]
+        )
+    )
+
+    list(
+        stream_analysis_events(
+            db_session,
+            document_id=document.id,
+            content=document.content,
+            doc_type=document.doc_type,
+            registry=RunRegistry(),
+            drift_client=drift,
+            drift_reference=DriftReference(reference_text="Mentoring and stakeholder management."),
+        )
+    )
+
+    findings = {
+        f.criterion: f
+        for f in db_session.scalars(
+            select(DriftFinding).where(DriftFinding.document_id == document.id)
+        ).all()
+    }
+    # Log everything, suppress in UI: the dismissed criterion is persisted suppressed.
+    assert findings["stakeholder management"].suppressed is True
+    assert findings["stakeholder management"].suppressed_by_dismissal_id is not None
+    assert findings["mentoring"].suppressed is False

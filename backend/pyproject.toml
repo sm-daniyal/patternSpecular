@@ -26,6 +26,12 @@ dev = [
     "pytest-cov",
     "ruff"
 ]
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q --import-mode=importlib"
+markers = [
+    "db: test requires a reachable PostgreSQL database (skipped if unavailable)",
+]
 
 [tool.ruff]
 line-length = 100
