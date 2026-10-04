@@ -37,12 +37,12 @@ export function CheckpointLayout({
   const navigate = useNavigate()
 
   return (
-    <main className="flex h-[calc(100vh-7rem)] flex-col bg-surface">
-      <div className="flex items-center justify-between gap-3 border-b border-border px-6 py-3">
+    <main className="flex h-[calc(100vh-7rem)] flex-col bg-canvas">
+      <div className="flex items-center justify-between gap-3 border-b border-border bg-surface px-6 py-3">
         {subBar}
       </div>
 
-      <div className="grid min-h-0 flex-1 grid-cols-[58%_42%]">
+      <div className="grid min-h-0 flex-1 grid-cols-[60%_40%]">
         <SurfaceEditorPane
           session={session}
           editorRef={surface.editorRef}
@@ -58,7 +58,7 @@ export function CheckpointLayout({
           onClose={() => navigate({ to: '/pattern-dashboard' })}
         />
 
-        <aside className="flex flex-col gap-4 overflow-auto bg-surface-alt p-5">
+        <aside className="flex flex-col gap-4 overflow-auto border-l border-border bg-surface-alt p-6">
           {aside}
         </aside>
       </div>

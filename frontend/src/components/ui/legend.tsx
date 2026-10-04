@@ -21,7 +21,7 @@ export function Legend({
     >
       <span className="inline-flex items-center gap-2.5">
         <span className="inline-block w-6 border-b-2 border-red-line" />
-        solid red — dictionary flag
+        solid orange — regulatory dictionary flag
       </span>
       <span className="inline-flex items-center gap-2.5">
         <span className="inline-block w-6 border-b-2 border-dashed border-amber-line" />

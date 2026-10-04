@@ -85,35 +85,37 @@ export function SurfaceEditorPane({
   onClose,
 }: SurfaceEditorPaneProps) {
   return (
-    <div className="overflow-auto border-r border-border">
+    <div className="flex flex-col h-full overflow-auto border-r border-border bg-canvas p-6 lg:p-8">
       {readOnly && <ReadOnlyBar onClose={onClose} />}
-      <Editor
-        title={session.title}
-        onTitleChange={session.setTitle}
-        titlePlaceholder={titlePlaceholder}
-        meta={
-          <span className="inline-flex items-center gap-1.5">
-            <span>
-              {documentKindLabel} · {submitted ? 'submitted' : 'draft'}
+      <div className="w-full max-w-3xl mx-auto rounded-2xl border border-border bg-surface p-8 lg:p-10 shadow-sm min-h-[580px]">
+        <Editor
+          title={session.title}
+          onTitleChange={session.setTitle}
+          titlePlaceholder={titlePlaceholder}
+          meta={
+            <span className="inline-flex items-center gap-1.5">
+              <span>
+                {documentKindLabel} · {submitted ? 'submitted' : 'draft'}
+              </span>
+              {session.saveState !== 'idle' && <span aria-hidden>·</span>}
+              <AutosaveStatus state={session.saveState} />
             </span>
-            {session.saveState !== 'idle' && <span aria-hidden>·</span>}
-            <AutosaveStatus state={session.saveState} />
-          </span>
-        }
-      >
-        <SurfaceEditor
-          ref={editorRef}
-          documentId={session.documentId}
-          editable={!readOnly}
-          initialContent={session.initialContent}
-          onTextChange={session.setContent}
-          onFlagsChange={onFlagsChange}
-          onApplyRecommendation={onApplyRecommendation}
-          onDismissFlag={onDismissFlag}
-          resolvedFlagIds={resolvedFlagIds}
-          onRunComplete={onRunComplete}
-        />
-      </Editor>
+          }
+        >
+          <SurfaceEditor
+            ref={editorRef}
+            documentId={session.documentId}
+            editable={!readOnly}
+            initialContent={session.initialContent}
+            onTextChange={session.setContent}
+            onFlagsChange={onFlagsChange}
+            onApplyRecommendation={onApplyRecommendation}
+            onDismissFlag={onDismissFlag}
+            resolvedFlagIds={resolvedFlagIds}
+            onRunComplete={onRunComplete}
+          />
+        </Editor>
+      </div>
     </div>
   )
 }

@@ -89,15 +89,15 @@ export function JdStudio() {
   // Hold the editor's mount until any remembered draft is restored, so it initialises once
   // with the restored text rather than flashing empty and overwriting it.
   if (session.isLoading) {
-    return <main className="h-[calc(100vh-7rem)] bg-surface" />
+    return <main className="h-[calc(100vh-7rem)] bg-canvas" />
   }
 
   const readOnly = session.isReadOnly
   const submitted = session.submitState === 'submitted' || readOnly
 
   return (
-    <main className="flex h-[calc(100vh-7rem)] flex-col bg-surface">
-      <div className="grid min-h-0 flex-1 grid-cols-[58%_42%]">
+    <main className="flex h-[calc(100vh-7rem)] flex-col bg-canvas">
+      <div className="grid min-h-0 flex-1 grid-cols-[60%_40%]">
         <SurfaceEditorPane
           session={session}
           editorRef={editorRef}
@@ -112,7 +112,7 @@ export function JdStudio() {
           onClose={() => navigate({ to: '/pattern-dashboard' })}
         />
 
-        <aside className="overflow-auto bg-surface-alt p-5">
+        <aside className="overflow-auto border-l border-border bg-surface-alt p-6">
           <CategorySummary items={categoryItems} />
           <hr className="my-4 border-border" />
           <div className="mb-1 flex items-center gap-2">
@@ -153,10 +153,10 @@ export function JdStudio() {
             This is your own data — visible only to you.
           </span>
           <Button
-            variant="ghost"
+            variant="secondary"
             size="md"
             onClick={handleStartNew}
-            className="text-ink-muted hover:text-ink cursor-pointer"
+            className="cursor-pointer"
           >
             New draft
           </Button>

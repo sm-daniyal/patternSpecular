@@ -1,32 +1,32 @@
-/* Pattern Mirror — colour tokens */
+/* Pattern Specular — modern colour tokens */
 
 :root {
-  /* Brand red */
-  --red-primary: #e60000;
-  --red-wordmark: #da0000;
-  --red-line: #e60000;
-  --red-tint: #fbeaea;
-  --red-press: #c20000;
+  /* Brand vibrant orange */
+  --red-primary: #ff5500;
+  --red-wordmark: #f04e00;
+  --red-line: #ff5500;
+  --red-tint: #fff2ec;
+  --red-press: #e04a00;
 
   /* Semantic flag accents */
-  --amber-contextual: #ad8629;
-  --amber-line: #c9a227;
-  --amber-tint: #faf3df;
-  --green-positive: #689739;
-  --purple-pattern: #844999;
+  --amber-contextual: #d97706;
+  --amber-line: #f59e0b;
+  --amber-tint: #fef3c7;
+  --green-positive: #16a34a;
+  --purple-pattern: #8b5cf6;
 
   /* Ink */
-  --ink: #1c1c1c;
-  --ink-muted: #5a5d5c;
-  --ink-faint: #b8b3a2;
+  --ink: #111827;
+  --ink-muted: #6b7280;
+  --ink-faint: #9ca3af;
 
-  /* Surfaces */
-  --canvas: #f7f6f3;
+  /* Surfaces — distinct contrasting shades */
+  --canvas: #f1f2f4;
   --surface: #ffffff;
-  --surface-alt: #f9f9f7;
-  --chip-track: #f0f0f0;
-  --border: #e0e0e0;
-  --border-warm: #e0dfd7;
+  --surface-alt: #f8f9fa;
+  --chip-track: #e5e7eb;
+  --border: #e2e4e8;
+  --border-warm: #d8dadf;
 
   /* Semantic aliases */
   --text-heading: var(--ink);

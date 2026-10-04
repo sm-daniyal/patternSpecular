@@ -25,10 +25,10 @@ export function Editor({
   children,
   ...props
 }: EditorProps) {
-  const titleClasses = 'font-serif text-title font-bold text-ink'
+  const titleClasses = 'font-logo text-2xl font-bold tracking-tight text-ink'
 
   return (
-    <div className={cn('h-full bg-surface px-8 py-7', className)} {...props}>
+    <div className={cn('h-full bg-transparent', className)} {...props}>
       {onTitleChange ? (
         <input
           type="text"
@@ -36,7 +36,7 @@ export function Editor({
           onChange={(event) => onTitleChange(event.target.value)}
           placeholder={titlePlaceholder}
           className={cn(
-            'w-full max-w-155 bg-transparent outline-none placeholder:text-ink-faint',
+            'w-full bg-transparent outline-none placeholder:text-ink-faint/60',
             titleClasses,
           )}
         />
@@ -44,9 +44,9 @@ export function Editor({
         title && <h2 className={titleClasses}>{title}</h2>
       )}
       {meta && (
-        <p className="mt-2 font-sans text-meta text-ink-faint">{meta}</p>
+        <p className="mt-2 font-sans text-meta text-ink-muted">{meta}</p>
       )}
-      <div className="mt-5 max-w-155 font-sans text-subheading leading-loose text-ink">
+      <div className="mt-6 font-sans text-body leading-relaxed text-ink">
         {children}
       </div>
     </div>
