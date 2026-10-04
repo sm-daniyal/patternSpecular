@@ -1,6 +1,5 @@
 import { useState, useRef, useEffect, type HTMLAttributes } from 'react'
 import { cn } from '@/lib/cn'
-import psLogo from '@/assets/ps-logo.svg'
 import { Button } from '@/components/ui/button'
 import { Chip } from '@/components/ui/chip'
 import type { AuthUser } from '@/lib/auth-contract'
@@ -62,12 +61,11 @@ export function TopBar({
       {...props}
     >
       <div className="flex items-center gap-3">
-        <img src={psLogo} alt="Pattern Specular" className="h-6 w-auto" />
-        <span className="font-logo text-[18px] font-extrabold tracking-tight text-ink">
+        <span className="font-logo text-[20px] font-black tracking-tight text-ink select-none">
           Pattern Specular
         </span>
         <span className="h-4 w-px bg-border" aria-hidden="true" />
-        <span className="font-sans text-label text-ink-muted">
+        <span className="font-sans text-label font-medium text-ink-muted">
           {surface}
         </span>
       </div>

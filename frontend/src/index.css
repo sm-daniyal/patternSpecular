@@ -124,5 +124,7 @@
 }
 
 .font-logo {
-  font-family: var(--font-logo) !important;
+  font-family: 'Outfit', 'Plus Jakarta Sans', sans-serif !important;
+  font-weight: 800 !important;
+  letter-spacing: -0.04em !important;
 }

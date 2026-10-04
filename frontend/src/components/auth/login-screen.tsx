@@ -1,6 +1,5 @@
 import { useState, type FormEvent } from 'react'
 import { Link, useNavigate } from '@tanstack/react-router'
-import psLogo from '@/assets/ps-logo.svg'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { LoginError } from '@/lib/auth-client'
@@ -55,22 +54,21 @@ export function LoginScreen({
 
   return (
     <div className="flex min-h-screen flex-col bg-canvas">
-      <header className="flex h-16 items-center gap-3 border-b border-border bg-surface px-6">
-        <img src={psLogo} alt="Pattern Specular" className="h-6 w-auto" />
-        <span className="font-logo text-[18px] font-extrabold tracking-tight text-ink">
+      <header className="flex h-16 items-center border-b border-border bg-surface px-6">
+        <span className="font-logo text-[22px] font-black tracking-tight text-ink select-none">
           Pattern Specular
         </span>
       </header>
 
       <main className="flex flex-1 flex-col items-center justify-center px-6">
         <div className="w-full max-w-md">
-          <div className="rounded-card border border-border bg-surface px-10 py-9 shadow-ring-card">
-            <h1 className="text-center font-logo text-title font-bold tracking-tight text-ink">
+          <div className="rounded-card border border-border bg-surface px-10 py-10 shadow-sm">
+            <h1 className="text-center font-logo text-2xl font-black tracking-tight text-ink">
               Greetings
             </h1>
             <p className="mt-2 text-center font-sans text-body-sm text-ink-muted">
               Sign in to the{' '}
-              <span className="font-semibold text-red-primary">
+              <span className="font-bold text-red-primary">
                 {portalLabel}
               </span>
             </p>

@@ -13,9 +13,9 @@
   --space-12: 48px;
 
   /* Radius */
-  --radius-button: 6px;
-  --radius-card: 10px;
-  --radius-popover: 8px;
+  --radius-button: 999px;
+  --radius-card: 16px;
+  --radius-popover: 12px;
   --radius-pill: 999px;
   --radius-bar: 5px 5px 0 0;
 
