@@ -49,7 +49,7 @@ def load_active_rules(session: Session, region_code: str) -> list[DictionaryRule
     if region_code != "ALL" and region_code:
         stmt = stmt.where(Dictionary.region_code == region_code)
     else:
-        stmt = stmt.where(Dictionary.region_code.in_(["SG", "IN"]))
+        stmt = stmt.where(Dictionary.region_code.in_(["SG", "IN", "US", "GB"]))
 
     entries = session.scalars(stmt).all()
     return [
@@ -68,11 +68,11 @@ def load_active_rules(session: Session, region_code: str) -> list[DictionaryRule
 def load_category_citations(session: Session, region_code: str) -> dict[BiasCategory, uuid.UUID]:
     """Map each category in the active lexicon to a representative statutory citation.
 
-    Supports specific region codes ("SG", "IN") or "ALL" for combined jurisdictional coverage.
+    Supports specific region codes ("SG", "IN", "US", "GB") or "ALL" for combined jurisdictional coverage.
 
     Args:
         session: An open database session.
-        region_code: The jurisdiction whose lexicon applies ("SG", "IN", or "ALL").
+        region_code: The jurisdiction whose lexicon applies ("SG", "IN", "US", "GB", or "ALL").
 
     Returns:
         One citation id per category present in the active lexicon.
@@ -81,7 +81,7 @@ def load_category_citations(session: Session, region_code: str) -> dict[BiasCate
     if region_code != "ALL" and region_code:
         stmt = stmt.where(Dictionary.region_code == region_code)
     else:
-        stmt = stmt.where(Dictionary.region_code.in_(["SG", "IN"]))
+        stmt = stmt.where(Dictionary.region_code.in_(["SG", "IN", "US", "GB"]))
 
     rows = session.execute(stmt).all()
     floor: dict[BiasCategory, uuid.UUID] = {}
