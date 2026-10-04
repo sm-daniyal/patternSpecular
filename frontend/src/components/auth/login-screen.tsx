@@ -57,7 +57,7 @@ export function LoginScreen({
     <div className="flex min-h-screen flex-col bg-canvas">
       <header className="flex h-16 items-center gap-3 border-b border-border bg-surface px-6">
         <img src={psLogo} alt="Pattern Specular" className="h-6 w-auto" />
-        <span className="font-logo text-[17px] font-bold tracking-tight text-ink">
+        <span className="font-logo text-[18px] font-extrabold tracking-tight text-ink">
           Pattern Specular
         </span>
       </header>

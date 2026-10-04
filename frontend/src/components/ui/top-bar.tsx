@@ -63,7 +63,7 @@ export function TopBar({
     >
       <div className="flex items-center gap-3">
         <img src={psLogo} alt="Pattern Specular" className="h-6 w-auto" />
-        <span className="font-logo text-[17px] font-bold tracking-tight text-ink">
+        <span className="font-logo text-[18px] font-extrabold tracking-tight text-ink">
           Pattern Specular
         </span>
         <span className="h-4 w-px bg-border" aria-hidden="true" />
