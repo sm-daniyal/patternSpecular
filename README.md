@@ -1,202 +1,204 @@
 # Pattern Specular
 
-A longitudinal bias-pattern analysis tool for managers: real-time bias flagging in hiring and promotion writing, drift checks against stated criteria, multi-jurisdiction statutory alignment, and statistically-gated pattern surfacing across a manager's full body of writing.
+A longitudinal bias-pattern analysis platform for hiring managers: real-time deterministic and agentic bias flagging in job descriptions, interview feedback, and promotion writing — with criteria drift evaluation, multi-jurisdiction statutory alignment, and statistically-gated pattern surfacing across a manager's full body of writing.
 
 [![CI](https://github.com/sm-daniyal/patternSpecular/actions/workflows/ci.yml/badge.svg)](https://github.com/sm-daniyal/patternSpecular/actions/workflows/ci.yml)
 ![Python 3.12](https://img.shields.io/badge/Python-3.12-3776AB?logo=python&logoColor=white)
 ![React 19](https://img.shields.io/badge/React-19-61DAFB?logo=react&logoColor=black)
 ![FastAPI](https://img.shields.io/badge/FastAPI-009688?logo=fastapi&logoColor=white)
-![Google Gemini](https://img.shields.io/badge/Google%20Gemini-3.5%20Flash%20Lite-4285F4?logo=google&logoColor=white)
+![Google Gemini](https://img.shields.io/badge/Google%20Gemini-2.5%20Flash-4285F4?logo=google&logoColor=white)
 ![PostgreSQL](https://img.shields.io/badge/Neon-PostgreSQL%2016-336791?logo=postgresql&logoColor=white)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-
-> **Documentation & Study Guide — [Master Roadmap & Interview Defense (docs/STUDY_GUIDE.md)](docs/STUDY_GUIDE.md).** The complete product walkthrough, user journeys, and research-grounded backend architecture.
-
-Built solo by **sm-daniyal** — an applied-AI and full-stack enterprise platform delivered as an architectural evolution of *Pattern Mirror*.
 
 ---
 
 ## The problem
 
-Unconscious bias persists in hiring decisions, despite the money firms spend on inclusivity training. Managers with hiring authority know the theory, but bias still creeps into the job descriptions, feedback, and promotion writeups they produce — and the tendency only shows across the whole body of writing over time, which no tool reviews.
+Bias in hiring and talent management persists in organisations that invest seriously in equity and inclusion. Managers with hiring and promotion authority understand the principles — yet coded language, gendered framing, and shifting evaluation criteria still appear in the documents they produce. A single flagged phrase in isolation is often ambiguous; the tendency only becomes clear across a manager's entire body of writing over time, which no standard tool reviews.
 
-Pattern Specular surfaces those patterns in a manager's own writing, with cited evidence — never as a hiring gate. Whether to act on what it shows stays the manager's decision.
+Pattern Specular surfaces those longitudinal patterns in a manager's own writing, grounded in statutory labor law and academic research — never as a hiring gate or a score. Whether to revise remains entirely the manager's decision.
 
 ## Product overview
 
-Two portals over one analysis engine and one database: four views for managers, and an aggregate-only portal for HR.
+Two isolated portals over one multi-jurisdiction analysis engine and one cloud database: four views for managers, and a strictly aggregated portal for HR.
 
 **Manager portal — four views:**
 
-- **JD Studio** — write job descriptions with live bias flagging: instant deterministic flags (<10ms), plus a streaming Gemini contextual pass that evaluates coded language and occupational context after a typing pause.
-- **Feedback Checkpoint** — pre-submission check on interview feedback, plus drift against the original JD's stated criteria.
-- **Promotion Writeup** — pre-submission check on a promotion case, plus drift against the employee's historical peer feedback.
-- **Pattern Dashboard** — the longitudinal view: patterns across the manager's writing, surfaced only when statistically significant.
+- **JD Studio** — write job descriptions with live dual-layer bias detection: instant deterministic dictionary flags, plus a streaming contextual pass that evaluates coded language and genuine occupational requirements after a typing pause.
+- **Feedback Checkpoint** — pre-submission evaluation of interview feedback, including a criteria drift check against the original job description's stated requirements.
+- **Promotion Writeup** — pre-submission review of promotion nominations against level rubrics and historical peer feedback, with drift surfacing for uncovered criteria.
+- **Pattern Dashboard** — the longitudinal view: aggregated writing tendencies surfaced only when Fisher's Exact Test confirms statistical significance across a manager's history.
 
 **HR portal — aggregates only, never individual content:**
 
-- **Trends Dashboard** — firm-level bias trends; any aggregate covering fewer than three managers is suppressed ($k \ge 3$ anonymity), so no figure can identify an individual.
-- **Dictionary Review** — the approval queue for proposed dictionary additions, each arriving with the reviewing agents' reasoning and citation.
+- **Trends Dashboard** — firm-level bias analytics; any data segment covering fewer than three managers is suppressed ($k \ge 3$ anonymity), so no figure can identify an individual.
+- **Dictionary Review** — the human-in-the-loop approval queue for candidate bias terms surfaced autonomously by the four-agent debate loop.
 
 **Design principles:**
 
-- **Mirror, not judge.** The tool shows patterns to the manager; it never penalises.
-- **Private by architecture.** Individual writing is visible only to the manager; HR sees aggregates only — enforced by the data model and API routes, not by policy.
-- **Non-blocking.** Every flag is dismissible. The tool never prevents a submission.
-- **Evidence for every flag.** Each observation cites statutory labor acts or peer-reviewed research.
+- **Specular, not judicial.** The platform reflects patterns back to the manager for self-calibration; it never penalises or gates.
+- **Private by architecture.** Individual writing is accessible only to the authoring manager; HR access is enforced at the schema and route levels, not by policy alone.
+- **Non-blocking.** Every flag is dismissible. No submission or approval is ever gated by the platform.
+- **Evidence for every flag.** Every surfaced observation cites statutory labor legislation or peer-reviewed research — no flag without a source.
 
-**Not** a chatbot · **not** a training module · **not** a hiring gate.
-
----
+**Not** a chatbot · **not** a training module · **not** a compliance checklist · **not** a hiring gate.
 
 ## Technical design
 
 ### Multi-jurisdiction statutory engine
 
-Pattern Specular evaluates writing across four statutory frameworks simultaneously:
-1. **India (`IN`)**: *Code on Wages 2019*, *Rights of Persons with Disabilities (RPwD) Act 2016*, *Transgender Persons (Protection of Rights) Act 2019*.
-2. **Singapore (`SG`)**: *TAFEP (Tripartite Alliance for Fair & Progressive Employment Practices)* guidelines.
-3. **United States (`US`)**: *EEOC Title VII*, *Age Discrimination in Employment Act (ADEA)*.
-4. **United Kingdom (`UK`)**: *Equality Act 2010*.
+Pattern Specular evaluates writing simultaneously against four statutory frameworks:
+
+| Jurisdiction | Legislation covered |
+|---|---|
+| **India (IN)** | Code on Wages 2019 · Rights of Persons with Disabilities (RPwD) Act 2016 · Transgender Persons (Protection of Rights) Act 2019 |
+| **Singapore (SG)** | TAFEP (Tripartite Alliance for Fair & Progressive Employment Practices) guidelines |
+| **United States (US)** | EEOC Title VII · Age Discrimination in Employment Act (ADEA) |
+| **United Kingdom (UK)** | Equality Act 2010 |
 
 ### Bias detection pipeline
 
-A bounded flow orchestrated as an explicit state graph — every stage logged, every transition traceable, every flag span-verified. A flag reaches the manager only by surviving every gate; the stage name links to its code.
+A bounded flow orchestrated as an explicit LangGraph StateGraph — every stage logged, every transition traceable, every flag span-verified before it reaches the manager. A flag surfaces only by surviving every gate.
 
-| Stage | Implementation | What it does |
-|---|---|---|
-| [Dictionary](backend/src/pattern_specular/engine/dictionary.py) | `engine/dictionary.py` | Deterministic, lemma-aware matching against curated, citation-backed statutory lexicons. No LLM call, sub-millisecond execution. |
-| [Contextual Pass](backend/src/pattern_specular/engine/contextual_pass.py) | `engine/contextual_pass.py` | Schema-enforced Google Gemini call: catches coded, non-literal language not yet in the dictionary, and judges whether each phrase is a bona-fide occupational requirement (GDOR) or biased in context. |
-| [Adjudicator](backend/src/pattern_specular/engine/adjudicator.py) | `engine/adjudicator.py` | Deterministic span verification: any LLM-claimed quote absent verbatim from the source is dropped. Hallucinated flags cannot reach the manager. |
-| [Verdict](backend/src/pattern_specular/engine/verdict.py) | `engine/verdict.py` | Evaluates in-context statutory rulings and suppresses bona-fide occupational justifications. |
-| [Suppression](backend/src/pattern_specular/engine/suppression.py) | `engine/suppression.py` | Filters out flags previously dismissed by the manager using sentence-level fingerprint hashes. |
-| [Judge](backend/src/pattern_specular/engine/judge.py) | `engine/judge.py` | Multi-sample consensus confidence gate: verifies surviving flags against calibrated rubrics; low-confidence flags terminate here. |
-| [Recommendations](backend/src/pattern_specular/engine/recommendations.py) | `engine/recommendations.py` | Two to three evidence-anchored alternative phrasings, only for flags above the confidence threshold. |
+| Stage | What it does |
+|---|---|
+| [Dictionary](backend/src/pattern_specular/engine/dictionary.py) | Deterministic, lemma-aware spaCy matching against citation-backed multi-jurisdiction lexicons. Sub-millisecond, no LLM call. |
+| [Contextual Pass](backend/src/pattern_specular/engine/contextual_pass.py) | Schema-enforced Gemini call via Instructor: catches coded, non-literal language absent from the dictionary and evaluates whether each phrase is a genuine occupational requirement (GDOR) or a bias signal. |
+| [Adjudicator](backend/src/pattern_specular/engine/adjudicator.py) | Deterministic verbatim span verification: any LLM-claimed quote absent from the source document is dropped. Hallucinated flags cannot reach the manager. |
+| [Verdict](backend/src/pattern_specular/engine/verdict.py) | Applies in-context statutory rulings: suppresses confirmed false positives that constitute bona-fide occupational requirements in context. |
+| [Suppression](backend/src/pattern_specular/engine/suppression.py) | Partitions surviving flags against the manager's prior dismissals using sentence-level hashing. Previously dismissed flags in unchanged context are suppressed. |
+| [Judge](backend/src/pattern_specular/engine/judge.py) | Multi-sample consensus gate: Gemini re-examines each surviving flag against a fixed rubric across N independent runs; confidence is the agreement fraction. Low-confidence flags terminate here. |
+| [Recommendations](backend/src/pattern_specular/engine/recommendations.py) | Two to three evidence-anchored, jurisdiction-aware neutral rewrites for every confirmed flag. |
 
 <details>
 <summary>Diagram — the bias-detection pipeline</summary>
 
 ```mermaid
 flowchart TB
-    T[document text] --> D[Dictionary Module<br/>match known bias phrases]
-    D --> C[Contextual Pass Agent<br/>flag coded language in context]
-    C --> A[Adjudicator Module<br/>verify every quoted span]
-    A -- "quote not verbatim in document<br/>(hallucinated) — dropped" --> X1[logged, never surfaced]
-    A --> V[Verdict Module<br/>apply in-context rulings]
-    V -- "acceptable in this context<br/>(false positive) — suppressed" --> X1
-    V --> S[Suppression Module<br/>respect prior dismissals]
-    S -- "manager already dismissed this,<br/>context unchanged — suppressed" --> X1
-    S --> J[Judge Agent<br/>independent second opinion, N samples]
-    J -- "samples disagree it's biased<br/>(low confidence) — terminated" --> X1
-    J --> R[Recommendations Agent<br/>alternative phrasings]
-    R --> OUT[flags surfaced to the manager,<br/>each with citation + evidence]
+    T[document text] --> D[Dictionary Module<br/>deterministic lemma match across<br/>4-jurisdiction statutory lexicons]
+    D --> C[Contextual Pass Agent<br/>Gemini flags coded language & GDOR in context]
+    C --> A[Adjudicator Module<br/>verbatim span verification]
+    A -- "quote absent from source<br/>(hallucination) — dropped" --> X1[logged to AgentRun, never surfaced]
+    A --> V[Verdict Module<br/>statutory in-context ruling]
+    V -- "bona-fide occupational requirement<br/>(false positive) — suppressed" --> X1
+    V --> S[Suppression Module<br/>respect prior manager dismissals]
+    S -- "previously dismissed,<br/>context unchanged — suppressed" --> X1
+    S --> J[Judge Agent<br/>multi-sample Gemini rubric consensus]
+    J -- "confidence < 0.70<br/>(samples disagree) — terminated" --> X1
+    J --> R[Recommendations Agent<br/>jurisdiction-aware neutral rewrites]
+    R --> OUT[flags surfaced to manager<br/>each with statutory citation & evidence]
 ```
 
 </details>
 
-### Dictionary growth — the detector improves as it's used
+### Autonomous lexicon growth — the detector sharpens as it's used
 
-A self-growing fast path: phrases the Contextual Pass keeps flagging across documents become candidates, four agents (Proposer, Skeptic, Categorizer, Citation) debate each, and HR approves what goes live. Nothing enters the dictionary without a citation, a general (not role-specific) scope, and a human sign-off — so wider adoption sharpens detection instead of leaving HR to hand-seed new terms each week. Full design: [docs/architecture/dictionary-growth.md](docs/architecture/dictionary-growth.md).
+Phrases the Contextual Pass flags repeatedly across documents, but which are absent from the static dictionary, are nominated as candidates. Four independent Gemini agents (Proposer, Skeptic, Categorizer, Citation) debate each candidate; the gate requires a verified citation, a general (not role-specific) scope, and inter-agent agreement. Candidates passing the gate enter an HR-reviewed approval queue before becoming live dictionary entries. Nothing enters the lexicon without a statutory or academic citation and a human sign-off. Full design: [architecture/dictionary-growth.md](docs/architecture/dictionary-growth.md).
 
 <details>
-<summary>Diagram — the dictionary growth loop</summary>
+<summary>Diagram — the autonomous lexicon growth loop</summary>
 
 ```mermaid
 flowchart TB
-    CP["Contextual Pass keeps flagging a phrase<br/>the dictionary doesn't know"] --> T{"trigger — recurring enough?<br/>proposed as general, uncatalogued, unreviewed,<br/>across ≥ N distinct documents and managers<br/>(config, defaults: 2 documents, 1 manager)"}
-    T -- no --> DROP1(["not a candidate — one-offs are noise,<br/>role-specific phrases stay context-only flags"])
+    CP["Contextual Pass flags a phrase<br/>absent from the static dictionary"] --> T{"trigger — recurring threshold met?<br/>≥ 2 distinct documents, ≥ 1 manager,<br/>not yet catalogued or under review"}
+    T -- no --> DROP1(["not a candidate — one-offs are noise"])
     T -- yes --> AGENTS
 
-    subgraph AGENTS["four independent agents, one candidate"]
+    subgraph AGENTS["four independent Gemini agents, one candidate"]
         direction LR
-        P["Proposer (Gemini)<br/>argues FOR: names protected<br/>characteristic, picks category,<br/>drafts neutral alternatives"]
-        S["Skeptic (Gemini)<br/>argues AGAINST: standard business<br/>language? too narrow? thin evidence?<br/>then gives its honest verdict"]
-        C["Categorizer (Gemini)<br/>scope: biased across hiring generally,<br/>or only for particular roles?"]
-        CI["Citation (Gemini)<br/>finds academic or regulatory support;<br/>'no support exists' is a valid answer,<br/>never fabricates"]
+        P["Proposer (Gemini 2.5 Flash)<br/>argues FOR — names the protected<br/>characteristic, proposes category,<br/>drafts neutral alternatives"]
+        S["Skeptic (Gemini 2.5 Flash)<br/>argues AGAINST — standard business<br/>language? too narrow? thin evidence?<br/>then gives its honest verdict"]
+        C["Categorizer (Gemini Flash Lite)<br/>scope: biased across hiring generally,<br/>or only for specific role types?"]
+        CI["Citation (Gemini 2.5 Flash)<br/>finds statutory or academic backing;<br/>'no support found' is a valid answer,<br/>never fabricates"]
     end
 
-    AGENTS --> GATE{"the gate — all three:<br/>citation found<br/>AND scope is general<br/>AND Proposer or Skeptic in favour"}
-    GATE -- fails --> DROP2(["dropped — but proposal row and all<br/>four agents' reasoning are persisted"])
-    GATE -- passes --> Q["pending_dictionary_additions queue<br/>phrase + category + citation + reasoning"]
-    Q --> HR{"HR reviews the queue<br/>(monthly bulk, human-in-the-loop)"}
-    HR -- reject / defer --> DROP3(["stamped with who and when;<br/>deferred items stay decidable"])
-    HR -- approve --> LIVE["live dictionaries row, citation attached"]
-    LIVE --> HIT(["next engine run: phrase is a<br/>deterministic Stage-1 hit — no LLM needed"])
+    AGENTS --> GATE{"gate — all three conditions:<br/>citation found<br/>AND scope is general<br/>AND Proposer or Skeptic in favour"}
+    GATE -- fails --> DROP2(["archived — proposal row and all<br/>four agents' reasoning preserved"])
+    GATE -- passes --> Q["pending_dictionary_additions queue<br/>phrase + jurisdiction + citation + reasoning"]
+    Q --> HR{"HR portal review<br/>(human-in-the-loop sign-off)"}
+    HR -- reject / defer --> DROP3(["stamped with reviewer and timestamp;<br/>deferred items remain decidable"])
+    HR -- approve --> LIVE["live dictionary entry, citation attached<br/>jurisdiction scope applied"]
+    LIVE --> HIT(["next engine run: deterministic Stage-1 hit<br/>zero LLM cost for that phrase"])
 ```
 
 </details>
 
-### Drift check
+### Criteria drift check
 
-The same engine run against a reference the writing should match: interview feedback against the JD's stated criteria, a promotion case against the employee's peer feedback. It reports which criteria the writing covered — each backed by a verified verbatim quote — and which it missed.
+The engine evaluated against a reference the writing is expected to cover: interview feedback checked against the original JD's stated criteria; a promotion nomination checked against the candidate's historical peer feedback. The system reports which criteria the writing addressed — each backed by a verified verbatim quote — and which were missed or under-evidenced.
 
-### Pattern surfacing
+### Statistical pattern surfacing
 
-Aggregated queries over the manager's flag history, no LLM involved. A tendency is called a pattern only when Fisher's exact test says it is statistically significant ($p < 0.05$), not merely frequent.
-
----
+Aggregated queries over a manager's flag corpus, no LLM involved. A tendency is elevated to a pattern only when Fisher's Exact Test (`scipy.stats.fisher_exact`) confirms statistical significance against a peer baseline — not merely frequency.
 
 ## Tech stack
 
 | Layer | Choices |
 |---|---|
-| Frontend | React 19 + TypeScript, Vite, Tailwind CSS v4, TipTap (editor surfaces), TanStack Router + Query |
-| Backend | Python 3.12, FastAPI, SSE streaming, LangGraph, structlog |
-| AI / agents | Google Gemini (`gemini-2.5-flash` / `gemini-3.5-flash-lite`); Instructor for structured outputs; LangGraph orchestration |
-| Data | Neon Serverless PostgreSQL 16 (cloud pooled), SQLAlchemy 2.x, Alembic migrations; document text in Postgres, resume binaries in blob storage |
-| Statistics | scipy — Fisher's exact test gating pattern surfacing |
-| Quality gates | ruff, mypy --strict, eslint + prettier, pytest (240 unit/integration tests) + vitest (251 frontend tests), GitHub Actions CI |
-
----
+| Frontend | React 19 + TypeScript, Vite, Tailwind CSS v4, TipTap (ProseMirror), TanStack Router + Query |
+| Backend | Python 3.12, FastAPI, SSE streaming, LangGraph orchestration, Pydantic v2, Structlog |
+| AI / agents | Google Gemini — `gemini-2.5-flash` (analysis, recommendations, drift, debate agents), `gemini-3.5-flash-lite` (judge); `google-genai` + Instructor for schema enforcement |
+| Data | Neon Serverless PostgreSQL 16 (SSL / pooled), SQLAlchemy 2.0 typed API, Alembic migrations |
+| Statistics | scipy — Fisher's Exact Test gating pattern surfacing |
+| Quality gates | ruff, mypy --strict, eslint, pytest (240 tests), vitest (251 tests), GitHub Actions CI |
 
 ## Getting started
 
-Prerequisites: Python 3.12, Node 20+, a free Google AI Studio API key, and Neon PostgreSQL database.
+Prerequisites: Python 3.12+, Node.js 20+, a Google AI Studio API key (`GOOGLE_API_KEY`), a Neon cloud PostgreSQL connection string (`DATABASE_URL`).
 
 ```powershell
-# 1. Backend — http://localhost:8000
+# backend — http://localhost:8000
 cd D:\pattern-specular\backend
+python -m venv venv
 .\venv\Scripts\Activate.ps1
 pip install -e .
+
+cp .env.example .env
+# set DATABASE_URL and GOOGLE_API_KEY in .env
+
 alembic upgrade head
 python -m pattern_specular.jobs.seed_demo
-uvicorn pattern_specular.main:create_app --factory --reload --port 8000
+uvicorn pattern_specular.main:create_app --factory --reload
+```
 
-# 2. Frontend — http://localhost:5173 (in a second shell)
+```powershell
+# frontend — http://localhost:5173, in a second terminal
 cd D:\pattern-specular\frontend
 npm install
 npm run dev
 ```
 
-### Seed demo accounts:
-- **HR Portal:** `teresa.lisbon@example.com` / Password: any non-empty text
-- **Manager Portal:** `sm.daniyal@example.com` (or `patrick.jane@example.com`, `areesha.naaz@example.com`) / Password: any non-empty text
+Without a `GOOGLE_API_KEY` the deterministic stages still run — dictionary flags work; LLM stages pass through. Demo accounts and seed data details: [`docs/DESIGN_SPEC.md`](docs/DESIGN_SPEC.md).
 
----
+## Repository layout
+
+```
+backend/    Python/FastAPI — engine, agents, API, services, jobs
+frontend/   React/TS — manager portal and HR portal
+docs/       Design spec, architecture docs, ADRs, conventions
+```
 
 ## Documentation
 
 | Document | What it is |
 |---|---|
-| [`docs/STUDY_GUIDE.md`](docs/STUDY_GUIDE.md) | The master study roadmap, architecture logs, and interview prep |
-| [`docs/DESIGN_SPEC.md`](docs/DESIGN_SPEC.md) | Product design specification and user journeys |
-| [`docs/architecture/overview.md`](docs/architecture/overview.md) | Technical architecture and invariant boundaries |
-| [`docs/architecture/data-model.md`](docs/architecture/data-model.md) | Relational schema, ER diagrams, and privacy models |
-| [`docs/architecture/llm-judge.md`](docs/architecture/llm-judge.md) | The LLM-as-a-Judge design |
-| [`docs/architecture/dictionary-growth.md`](docs/architecture/dictionary-growth.md) | The 4-agent autonomous dictionary growth loop |
-| [`docs/architecture/pattern-significance.md`](docs/architecture/pattern-significance.md) | Statistical gating via Fisher's Exact Test |
-| [`docs/CONVENTIONS.md`](docs/CONVENTIONS.md) | Engineering workflow, testing, git, project management |
-| [`docs/CODE_STYLE.md`](docs/CODE_STYLE.md) | Language-level style rules for Python and TypeScript |
-| [`docs/adr/`](docs/adr/) | Architecture decision records — what was decided, when, and why |
+| [docs/](docs/README.md) | The full documentation index |
+| [DESIGN_SPEC.md](docs/DESIGN_SPEC.md) | The product design specification |
+| [architecture/overview.md](docs/architecture/overview.md) | Overview of the technical architecture |
+| [architecture/llm-judge.md](docs/architecture/llm-judge.md) | The LLM-as-a-Judge design |
+| [adr/](docs/adr/) | Architecture decision records — what was decided, when, and why |
+| [CONVENTIONS.md](docs/CONVENTIONS.md) | Engineering workflow, testing, git, project management |
+| [CODE_STYLE.md](docs/CODE_STYLE.md) | Language-level style rules for Python and TypeScript |
+| [CLAUDE.md](CLAUDE.md) | Collaboration rules for AI-assisted development on this repo |
+
+The docs under [docs/architecture/](docs/architecture/overview.md) carry the rendered flow, sequence, and ER diagrams.
 
 ---
 
-## Provenance & Attribution
+## Provenance & attribution
 
-Pattern Specular is an architectural evolution of **[Pattern Mirror](https://github.com/Bernice-Koh/pattern-mirror)**, originally designed by **Bernice Koh** under the MIT License.
+Pattern Specular is an architectural evolution of **[Pattern Mirror](https://github.com/Bernice-Koh/pattern-mirror)**, originally built by **Bernice Koh** under the MIT License.
 
-Key architectural advancements in **Pattern Specular** (authored by **[sm-daniyal](https://github.com/sm-daniyal)**):
-1. **Google Gemini Re-architecture**: Replaced Anthropic dependencies with Google Gemini (`gemini-2.5-flash` / `gemini-3.5-flash-lite`) via `google-genai` and `instructor`.
-2. **Cloud-Native Database**: Deployed and configured serverless connection pooling on **Neon PostgreSQL 16**.
-3. **Multi-Jurisdiction Expansion**: Incorporated statutory lexicons for **India** (*Code on Wages 2019*, *RPwD Act 2016*, *Transgender Persons Act 2019*), **United States** (*EEOC Title VII*, *ADEA*), and **United Kingdom** (*Equality Act 2010*) alongside Singapore (*TAFEP*).
-4. **Modern Design System**: Rebuilt frontend styling with **Tailwind CSS v4** featuring the executive Rosewood palette, diamond prism branding, and persistent draft sessions.
+---
+
+Built by [sm-daniyal](https://github.com/sm-daniyal) — sovereign architectural extension of Pattern Mirror's original engine and product concept.
