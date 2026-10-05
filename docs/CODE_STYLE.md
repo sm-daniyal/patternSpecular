@@ -28,7 +28,7 @@ Validate inputs at system boundaries: HTTP request bodies, LLM structured output
 
 > *Why:* one layer of strict validation at the boundary protects everything inside; defensive checks everywhere rot independently and bury the logic.
 
-In this project the LLM is a boundary. Every Contextual Pass / Judge / Recommendations response is parsed into a Pydantic schema (via Instructor) before any other code touches it. Raw model text never flows through the engine.
+In this project the LLM is a boundary. Every Contextual Pass, Judge, and Recommendations response is parsed into a Pydantic schema via Instructor before any other code touches it. Raw model text never flows through the engine.
 
 ---
 
@@ -91,22 +91,22 @@ Handlers in `api/` are thin: typed request model in, `Depends(...)` for session/
 
 ### SQLAlchemy patterns
 
-- 2.x typed declarative API (`Mapped[...]`, `mapped_column(...)`); legacy `Column(...)` style is out.
+- 2.0 typed declarative API (`Mapped[...]`, `mapped_column(...)`); legacy `Column(...)` style is out.
 - One `Base`, in `db/base.py`. Sessions scoped per-request or per-job-run, never global.
-- Queries via `select(...)`; drop to raw SQL only where the ORM gets ugly (the Pattern Aggregator's contingency-table queries may qualify) and keep it visible in `db/queries/`.
+- Queries via `select(...)`; drop to raw SQL only where the ORM gets in the way (the Pattern Aggregator's contingency-table queries may qualify) and keep it visible in `db/queries/`.
 
 ### Async vs sync
 
 This backend has two genuinely different paths, and the rule differs by path:
 
-- **The analysis path is async.** SSE streaming of flags plus multi-second Google calls is the textbook case: `async` handlers let the server stream Layer 1 dictionary flags while the Layer 2 LLM call is still in flight, and keep other requests unblocked.
-- **Everything else defaults to sync.** CRUD endpoints, the Pattern Aggregator's SQL, jobs — sync is simpler to write, debug, and test, and there's no concurrency win to pay async's call-chain contagion for.
+- **The analysis path is async.** SSE streaming of flags plus multi-second Gemini calls is the textbook case: `async` handlers let the server stream Layer 1 dictionary flags while the Layer 2 LLM call is still in flight, and keep other requests unblocked.
+- **Everything else defaults to sync.** CRUD endpoints, the Pattern Aggregator's SQL, jobs — sync is simpler to write, debug, and test, and there is no concurrency win to pay async's call-chain contagion for.
 
-> *Why:* async is a cost (every caller in the chain must be async) that's only worth paying where you actually wait on slow I/O concurrently. Pay it on the engine path; refuse it elsewhere.
+> *Why:* async is a cost (every caller in the chain must be async) that is only worth paying where you actually wait on slow I/O concurrently. Pay it on the engine path; refuse it elsewhere.
 
 ### Exceptions
 
-- Typed exceptions in `core/errors.py`, all subclassing `PatternMirrorError`.
+- Typed exceptions in `core/errors.py`, all subclassing `PatternSpecularError`.
 - Raise at the deepest layer that can name the failure (`SpanNotInSource`, not `ValueError`).
 - Catch at handler/orchestrator boundaries only.
 
@@ -144,20 +144,20 @@ Short JSDoc explaining *intent* on public components and exported functions; int
 
 - Local state (`useState`, `useReducer`) is the default.
 - Server state (flags, patterns, documents from the API) goes through TanStack Query — Layer 1's request/response `/analyze` call included. Don't mirror server state into a global store.
-- A long-lived SSE subscription that *accumulates* incrementally (the Layer 2 flag stream) is the exception: it lives in a dedicated hook owning its `AbortController` and accumulator, not on TanStack Query. Query models one request resolving to one response, not an open stream appending results over seconds.
+- A long-lived SSE subscription that *accumulates* incrementally (the Layer 2 flag stream) is the exception: it lives in a dedicated hook owning its `AbortController` and accumulator, not in TanStack Query. Query models one request resolving to one response, not an open stream appending results over seconds.
 - Global UI state (active view, sidebar) — Context if tiny, Zustand if it grows.
 
-> *Why:* the classic mistake is putting server data in a global store and hand-writing a sync layer; server-state libraries solve caching, loading states, and refetching for free. The carve-out is narrow — only the accumulating stream, because the abstraction Query is built around (request → response) doesn't fit it.
+> *Why:* the classic mistake is putting server data in a global store and hand-writing a sync layer; server-state libraries solve caching, loading states, and refetching automatically. The carve-out is narrow — only the accumulating SSE stream, because the abstraction Query is built around (request → response) doesn't fit it.
 
 ### Styling
 
-Tailwind utility classes in JSX are the styling mechanism — that's the stack's model, not a violation of separation.
+Tailwind utility classes in JSX are the styling mechanism. Design tokens live in `src/styles/tokens/` — no component hardcodes a hex value.
 
-- Repeated utility patterns get extracted into a component (or a `cva`/variant helper), not copy-pasted across files and not hidden in `@apply` blobs.
-- No `style={{ ... }}` inline style objects; if a value must be dynamic, prefer a CSS variable set at a high level.
+- Repeated utility patterns get extracted into a component (or a `cva` variant helper), not copy-pasted across files and not hidden in `@apply` blobs.
+- No `style={{ ... }}` inline style objects; if a value must be dynamic, prefer a CSS variable set via the token system.
 - `!important` is banned except against third-party CSS, with a comment.
 
-> *Why:* the unit of reuse in a Tailwind codebase is the component, not the class string. Extracting components keeps the design system (the migrated `pm` kit) the single source of visual truth.
+> *Why:* the unit of reuse in a Tailwind codebase is the component, not the class string. The Rosewood token system in `src/styles/tokens/` is the single source of visual truth — consuming it through components keeps the design system coherent.
 
 ### Imports
 
