@@ -1,30 +1,56 @@
-# ADR 0015: Multi-Region Statutory Expansion (India Jurisdiction)
+# ADR 0015: Multi-Region Statutory Expansion — India Jurisdiction
 
-## Status
-
-Accepted
+**Date:** 2026-07-12
+**Status:** Accepted
 
 ## Context
 
-The initial MVP of the architecture was scoped strictly to Singapore's TAFEP (Tripartite Alliance for Fair and Progressive Employment Practices) guidelines. To demonstrate jurisdiction-agnostic scalability, the system was expanded to support multi-national regulatory compliance frameworks, specifically adding India's statutory employment laws.
+The inherited engine was scoped to Singapore's TAFEP guidelines as its single active
+jurisdiction. Bias-language coding is region-specific — phrases that constitute indirect
+discrimination under India's Code on Wages 2019 do not map to TAFEP categories, and
+vice versa. Evaluating a document authored in a global engineering context against a
+single jurisdiction's lexicon produces false negatives for managers operating in or
+hiring for other markets.
 
-Key Indian labor regulations addressed:
-1. **Code on Wages, 2019:** Mandates gender-neutral remuneration and prohibits discrimination on grounds of sex or age for the same work or work of similar nature.
-2. **Rights of Persons with Disabilities (RPwD) Act, 2016:** Prohibits discrimination against persons with disabilities and mandates reasonable accommodations in recruitment.
-3. **Transgender Persons (Protection of Rights) Act, 2019:** Forbids unfair discrimination in employment, recruitment, and career advancement against transgender individuals.
+Demonstrating jurisdiction-agnostic scalability required adding at least one additional
+statutory framework with materially different protected characteristics and legislative
+language. India was selected because:
+
+1. It has three distinct, well-documented statutory instruments covering different
+   protected characteristics (wages/gender, disability, gender identity).
+2. The legislation is recent (2016–2019), actively enforced, and publicly available
+   in official gazette form for citation.
+3. Its protected-characteristic categories (disability-coded language, gender-identity
+   framing) extend coverage beyond TAFEP's scope without duplicating it.
 
 ## Decision
 
-1. Expanded the `regions` table to seed the `IN` jurisdiction code alongside `SG`.
-2. Created Alembic migration `0020_india_region_lexicon.py` to seed regulatory citations and curated dictionary rules for India.
-3. Added statutory lexicon rules for:
-   - `young`, `fresh`, `energetic` (Age discrimination under Code on Wages, 2019)
-   - `manpower` (Gender exclusion under Code on Wages, 2019)
-   - `physically fit`, `normal` (Disability-coded language under RPwD Act, 2016)
-   - `male/female only` (Binary exclusion under Transgender Persons Act, 2019)
-4. Configured curated, research-backed neutral alternatives for all seeded Indian statutory terms.
+Expand the statutory lexicon to the `IN` jurisdiction.
+
+Implementation:
+
+1. Seeded the `regions` table with the `IN` jurisdiction code.
+2. Created Alembic migration `0020_india_region_lexicon.py` to seed regulatory
+   citations and curated dictionary entries for the three Indian statutes.
+3. Statutory coverage added:
+
+| Statute | Protected characteristic | Example term |
+|---|---|---|
+| Code on Wages 2019 | Age · Gender | `young`, `fresh`, `energetic`, `manpower` |
+| RPwD Act 2016 | Disability | `physically fit`, `able-bodied`, `normal` |
+| Transgender Persons Act 2019 | Gender identity | `male/female only`, binary-exclusive framing |
+
+4. Each seeded entry carries a `citations` FK to the specific legislative provision —
+   Section 3(1) Code on Wages, Section 20 RPwD Act, Section 11 Transgender Act — so
+   the provenance is reconstructable to the official gazette.
 
 ## Consequences
 
-- **Multi-Region Architecture:** Proves that the deterministic Stage 1 dictionary and the LLM-gated Stage 2 contextual pass scale seamlessly to distinct international legal standards simply by partitioning on `region_code`.
-- **Verifiable Provenance:** Every flagged term in the Indian jurisdiction links directly to official Ministry gazettes and legislative acts (`citations` table).
+- **Multi-jurisdiction by partition.** The dictionary loader selects entries by
+  `region_code`; no engine change was required to add `IN`. The same pattern applies to
+  future jurisdictions — US (Title VII, ADEA), UK (Equality Act 2010), and others.
+- **Verifiable provenance.** Every flagged term in the Indian jurisdiction links
+  directly to official Ministry of Law and Justice gazette references.
+- **Test coverage.** The 76-file backend test suite covers the India lexicon entries
+  as unit tests against the Dictionary Module and as integration tests through the full
+  seven-stage pipeline.
