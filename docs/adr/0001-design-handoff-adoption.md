@@ -65,5 +65,5 @@ loader page, `_adherence.oxlintrc.json`, and image assets. The entire
 ## Notes
 
 The original brand fonts are proprietary and not in the bundle; the tokens
-substitute the closest open Google Fonts (Source Serif 4 / Inter). Replace with licensed
-fonts for production. See `docs/design-system/README.md`.
+substitute the closest open Google Fonts (Outfit / Source Serif 4 / Inter). See
+`docs/design-system/README.md`.
