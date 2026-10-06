@@ -63,7 +63,6 @@ erDiagram
         enum subject_type "candidate (hiring) or employee (promotion)"
         string gender "pattern-analysis dimension"
         string age_band "pattern-analysis dimension"
-        string resume_blob_ref "pointer into blob storage"
     }
     Document {
         uuid id PK
@@ -216,10 +215,10 @@ agreement, ECE, Brier, per-stage precision/recall — the calibration time serie
 | `UserRoleAssignment` (separate table) | One person can be both a manager and an HR reviewer. Roles live in their own table, and the current session's active role — not the user record — decides which portal they're using and what they can see |
 | `FlagInteraction` | Every time the manager responds to a flag we showed them — accepting a suggested rewrite, dismissing the flag, or undoing a dismissal — it is recorded here as its own row. Doing nothing writes no row, so "the manager ignored this flag" is simply the absence of any interaction. This log is how the dashboard knows how a manager actually reacts to the bias it surfaces |
 
-## Blob storage
+## Storage
 
-PostgreSQL holds all text — document content is `Text` columns, deliberately not
-blobs, because it is short-form and queried constantly. The only binaries are files:
-`Subject.resume_blob_ref` and `User.avatar_blob_ref` are string pointers into blob
-storage (local disk in dev, Azure Blob in production, one interface). The engine never
-reads blobs.
+All data — document text, flags, dismissals, agent outputs, citations, and lexicon
+entries — is stored relationally in **Neon Serverless PostgreSQL 16**. Document content
+is `Text` columns, not blobs, because it is short-form and queried constantly. There is
+no blob storage in the current implementation: Pattern Specular does not handle resume
+or CV binary files.
