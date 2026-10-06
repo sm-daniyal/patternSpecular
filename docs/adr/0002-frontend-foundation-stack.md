@@ -20,8 +20,8 @@ TypeScript + Vite + Tailwind + npm; three choices it leaves open needed deciding
   `routeTree.gen.ts` in version control.
 
 - **Styling — Tailwind v4 + `@tailwindcss/vite`.** The adopted tokens are bridged to
-  utilities with `@theme inline` in `src/index.css`, so `bg-red-primary` references
-  `var(--red-primary)` and the token files stay the source of truth. Chosen over v3 as the
+  utilities with `@theme inline` in `src/index.css`, so `bg-rosewood-primary` references
+  `var(--rosewood-primary)` and the token files stay the source of truth. Chosen over v3 as the
   current default for new Vite projects with the cleanest token bridge.
 
 - **Variants — class-variance-authority** (with `clsx` + `tailwind-merge` behind a `cn()`
