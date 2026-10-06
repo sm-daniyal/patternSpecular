@@ -14,9 +14,9 @@ shift.
 
 | Term | Meaning here |
 |---|---|
-| **Sprint** | One week of committed work. |
-| **Standup** | A regular check-in with the project mentor and engineering buddy: done, next, blocked. |
-| **Milestone** | A fixed programme deadline (checkpoints, final showcase). Sprints aim at these. |
+| **Sprint** | One week of committed feature delivery. |
+| **Standup** | Regular architecture review and progress check-in: done, next, blocked. |
+| **Milestone** | Fixed project delivery milestones (MVP checkpoints, architecture reviews, final release). |
 
 ## Breaking work down
 
