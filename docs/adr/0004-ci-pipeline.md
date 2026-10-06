@@ -20,10 +20,11 @@ SonarCloud is named in the issue but deferred to a follow-up PR (see Consequence
   wall-clock cost is the slower job rather than the sum, and each reports as its own status
   check. This also keeps the pipeline inside the issue's ~5-minute budget.
 
-- **PostgreSQL as a service container, not Neon Serverless PostgreSQL (docker-compose retained for reference).** The `backend` job runs
+- **PostgreSQL as a service container, not Neon.** The `backend` job runs
   `postgres:16` as a GitHub Actions service, health-gated with `pg_isready` so tests start
-  only once the database answers. `deploy/Neon Serverless PostgreSQL (docker-compose retained for reference).yml` exists for local dev (a named
-  volume, the test-DB init script); CI wants an ephemeral instance with nothing persisted.
+  only once the database answers. Neon is the production and development database; CI
+  uses an ephemeral service container so no live credentials are required and nothing
+  is persisted between runs.
 
 - **The suite resolves its own database.** Actions sets `CI=true` automatically; with
   `TEST_DATABASE_URL` left unset, `conftest.py` migrates and runs against the job's
