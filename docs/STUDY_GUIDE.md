@@ -27,15 +27,15 @@
 | Step | Document | Core Concept | Architectural Invariant | Status |
 | :---: | :--- | :--- | :--- | :---: |
 | **01** | [`README.md`](../README.md) | High-level problem, 2 Portals, 6-Stage Pipeline, Tech Stack | The 30,000-ft executive overview of the system | ✅ Synced |
-| **02** | [`docs/DESIGN_SPEC.md`](DESIGN_SPEC.md) | Business case, 4 Manager Views, Latency tiers (<10ms vs 5s) | Explains user journeys and why linters/chatbots fail | ⏳ Next |
-| **03** | [`docs/architecture/overview.md`](architecture/overview.md) | Privacy boundary, state machine, pipeline gates | Deterministic state transitions and isolation | ⏳ Upcoming |
-| **04** | [`docs/architecture/data-model.md`](architecture/data-model.md) | Schema ERD, `owner_id`, `submitted_content`, flag hashes | Physical isolation of sensitive draft documents | ⏳ Upcoming |
-| **05** | [`docs/architecture/flags-and-suppression.md`](architecture/flags-and-suppression.md) | Lemma normalization, sentence fingerprints, dismissals | Respects manager dismissals across draft edits | ⏳ Upcoming |
-| **06** | [`docs/architecture/llm-judge.md`](architecture/llm-judge.md) | Multi-sample consensus, rubric calibration, ECE/Brier | Eliminates LLM flakiness via ensemble agreement | ⏳ Upcoming |
-| **07** | [`docs/architecture/pattern-significance.md`](architecture/pattern-significance.md) | Fisher's Exact Test, $2 \times 2$ contingency tables | Mathematical distinction between habit and noise | ⏳ Upcoming |
-| **08** | [`docs/architecture/dictionary-growth.md`](architecture/dictionary-growth.md) | 4-agent debate loop (Proposer, Skeptic, Categorizer, Citation) | Autonomous self-growth with human HR approval | ⏳ Upcoming |
-| **09** | [`docs/adr/`](adr/) | Architectural Decision Records (ADRs 0001–0018) | Defending engineering trade-offs in interviews | ⏳ Upcoming |
-| **10** | [`docs/CONVENTIONS.md`](CONVENTIONS.md) & [`CODE_STYLE.md`](CODE_STYLE.md) | mypy --strict, PEP 518, Tailwind v4, pytest/vitest gates | Enterprise-grade production quality standards | ⏳ Upcoming |
+| **02** | [`docs/DESIGN_SPEC.md`](DESIGN_SPEC.md) | Business case, 4 Manager Views, Latency tiers (<10ms vs 5s) | Explains user journeys and why linters/chatbots fail | ✅ Synced |
+| **03** | [`docs/architecture/overview.md`](architecture/overview.md) | Privacy boundary, state machine, pipeline gates | Deterministic state transitions and isolation | ✅ Synced |
+| **04** | [`docs/architecture/data-model.md`](architecture/data-model.md) | Schema ERD, `owner_id`, `submitted_content`, flag hashes | Physical isolation of sensitive draft documents | ✅ Synced |
+| **05** | [`docs/architecture/flags-and-suppression.md`](architecture/flags-and-suppression.md) | Lemma normalization, sentence fingerprints, dismissals | Respects manager dismissals across draft edits | ✅ Synced |
+| **06** | [`docs/architecture/llm-judge.md`](architecture/llm-judge.md) | Multi-sample consensus, rubric calibration, ECE/Brier | Eliminates LLM flakiness via ensemble agreement | ✅ Synced |
+| **07** | [`docs/architecture/pattern-significance.md`](architecture/pattern-significance.md) | Fisher's Exact Test, $2 \times 2$ contingency tables | Mathematical distinction between habit and noise | ✅ Synced |
+| **08** | [`docs/architecture/dictionary-growth.md`](architecture/dictionary-growth.md) | 4-agent debate loop (Proposer, Skeptic, Categorizer, Citation) | Autonomous self-growth with human HR approval | ✅ Synced |
+| **09** | [`docs/adr/`](adr/) | Architectural Decision Records (ADRs 0001–0018) | Defending engineering trade-offs in interviews | ✅ Synced |
+| **10** | [`docs/CONVENTIONS.md`](CONVENTIONS.md) & [`CODE_STYLE.md`](CODE_STYLE.md) | mypy --strict, PEP 518, Tailwind v4, pytest/vitest gates | Enterprise-grade production quality standards | ✅ Synced |
 
 ---
 
