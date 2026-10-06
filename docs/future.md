@@ -41,7 +41,7 @@ flowchart TB
     FEED["Real portfolio project feedback / ATS / HRIS"]
     FEED -.->|"replaces synthetic peer feedback"| DB
 
-    REG["Region dictionaries<br/>UK / US / EU / MY / ID / TH / PH / VN"]
+    REG["Additional region dictionaries<br/>EU / MY / ID / TH / PH / VN / AU / JP"]
     REG -.->|"new region rows, no engine change"| DB
 
     classDef future fill:#fff,stroke:#999,stroke-dasharray:4 3,color:#000;
@@ -51,12 +51,12 @@ flowchart TB
 ## The proposals
 
 ### Multi-model gateway
-Route each agent to a model from any provider, chosen at runtime, instead of Google Gemini 3.5 Flash Lite
+Route each agent to a model from any provider, chosen at runtime, instead of Google Gemini
 throughout. **Seam:** models are already per-agent config (`core/config.py`) behind one
 `StructuredCompletionClient` interface (`engine/llm_agent.py`) — the gateway is a second
 implementation of an interface that already exists, which is why
-[Gemini.md](../Gemini.md) says not to build the abstraction yet. **Seeded by** an offline
-cost/agreement eval over the gold set (Google Gemini 3.5 Flash Lite vs DeepSeek), reusing the calibration
+[CLAUDE.md](../CLAUDE.md) says not to build the abstraction yet. **Seeded by** an offline
+cost/agreement eval over the gold set (Google Gemini vs Claude / DeepSeek), reusing the calibration
 approach. **Leaves alone:** the engine, the trust guarantees, and the Judge's
 different-model independence ([llm-judge.md](architecture/llm-judge.md)).
 
