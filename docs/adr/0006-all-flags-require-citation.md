@@ -6,7 +6,8 @@
 ## Context
 
 §1 makes "evidence for every flag" a core principle, and §3 Stage 1 has every dictionary
-hit cite TAFEP or peer-reviewed research. But §4's dictionary-growth loop states that a
+hit cite statutory labor legislation (Code on Wages 2019, RPwD Act 2016, TAFEP, EEOC Title VII,
+Equality Act 2010) or peer-reviewed research. But §4's dictionary-growth loop states that a
 phrase lacking academic or regulatory support "may still fire from the Contextual Pass, but
 it does not become a dictionary entry without citation" — i.e. a Contextual Pass (Stage 2)
 flag could reach the manager **without** a citation. That is exactly the "the model said so"
@@ -18,8 +19,8 @@ defensible audit trail and an opinion.
 - **Every flag — dictionary or contextual — carries a citation by reference.** The flag
   references a `citation_id` (FK into the `citations` table); the model never emits
   free-text citations, which would be fabricable.
-- **Minimum bar:** the category-level TAFEP citation for the flag's bias category; a sharper
-  research citation where one applies.
+- **Minimum bar:** a category-level statutory citation (e.g., Code on Wages, RPwD, or TAFEP)
+  for the flag's bias category; a sharper research citation where one applies.
 - **No citation, no flag.** If the Contextual Pass cannot attach a valid `citation_id` to a
   candidate, it suppresses the candidate rather than raising it. The phrase can still enter
   the §4 growth queue, where the Citation agent searches for support.
