@@ -5,7 +5,7 @@
 
 ## Context
 
-Issue #17 builds the persistence foundation: local Postgres via Neon Serverless PostgreSQL (docker-compose retained for reference),
+Issue #17 builds the persistence foundation: Neon Serverless PostgreSQL 16,
 SQLAlchemy 2.x typed models, Alembic, and the first migration covering the core
 entities. The logical schema and its modelling rationale (decisions D1–D11) were
 settled in the issue #17 schema design brief; this ADR records the
@@ -65,8 +65,8 @@ itself.
   URLs are plain strings, not `PostgresDsn`, so the `+psycopg` driver suffix
   passes through to `create_engine` untouched.
 
-- **Test isolation.** Neon Serverless PostgreSQL (docker-compose retained for reference) provisions `pattern_specular_test` alongside
-  the dev database via an init script on first boot. A session-scoped fixture
+- **Test isolation.** Tests requiring the database run against a PostgreSQL 16 service
+  container in CI. A session-scoped fixture
   runs `alembic upgrade head` against the test database; each `db_session` runs
   in a transaction rolled back afterwards, so tests neither persist data nor
   touch the dev database. When no Postgres is reachable, the database tests skip
@@ -74,8 +74,7 @@ itself.
 
 ## Consequences
 
-- **+** A clean machine reaches the full schema with `docker compose up` then
-  `alembic upgrade head`; the test database is migrated automatically by the
+- **+** A developer with `DATABASE_URL` set reaches the full schema with `alembic upgrade head`; the test database is migrated automatically by the
   suite.
 - **+** `alembic check` in CI will catch any future drift between models and
   migrations.
