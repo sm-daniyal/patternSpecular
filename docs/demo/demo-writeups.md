@@ -122,6 +122,103 @@ peers corroborating technical delivery.
 
 ---
 
+## Wayne Rigsby (Operations) — US EEOC Title VII & ADEA Statutory Scenarios
+
+### JD Studio — publish a JD
+**Role:** `Site Operations Lead` (or `Logistics Manager`).
+
+> Looking for a young, hungry operations rockstar to command our 24/7 fulfillment grid. Candidates must be energetic,
+> aggressive negotiators who can dominate vendor relations. Uncompromising schedule with round-the-clock weekend availability;
+> candidates with family obligations or caregiving duties need not apply. Recent college graduates preferred.
+
+**Should flag:**
+- `young`, `recent college graduate` (Age Discrimination in Employment Act - ADEA 29 U.S.C. § 623).
+- `aggressive`, `dominate` (Gender-coded hyper-masculine agentic language).
+- `family obligations or caregiving duties` (EEOC Title VII caregiver discrimination & disparate impact).
+
+### Feedback Checkpoint — interview feedback
+**Role:** `Site Operations Lead` · **Candidate:** Marcus Vance.
+
+> Marcus has solid logistics fundamentals, but I worry he doesn't have the youthful energy needed for our grueling peak seasons.
+> He seemed rather passive during the facility tour, lacking the aggressive commanding presence we look for in operations.
+> A very gentle, soft-spoken fellow, but not sure he can hold the line.
+
+**Should flag:**
+- `youthful energy` (ADEA age-coded proxy).
+- `passive`, `aggressive`, `soft-spoken` (Agentic/communal gender-coded evaluation bias).
+- **Drift:** Does not evaluate stated JD criteria (*Supply chain routing*, *Vendor SLA management*, *Throughput optimization*).
+
+### Promotion Writeup — evaluate for promotion
+**Level:** `Principal Operations Manager` · **Employee:** Elena Rostova.
+
+> Elena is a wonderfully pleasant and nurturing presence in our depot. She keeps everyone smiling, bakes treats for sprint
+> milestones, and handles administrative coordination with immense warmth. She is dependable and gentle, making our operational
+> environment feel like home. Recommend her promotion because she keeps squad morale high.
+
+**Should flag:**
+- `pleasant`, `nurturing`, `warmth`, `dependable`, `gentle` (Gendered communal pigeonholing).
+- **Rubric Gap:** Omits all core operational leadership competencies (*Logistics budget oversight*, *Incident MTTR reduction*, *Vendor SLA governance*).
+- **Peer Corroboration:** Static peer panel corroborates high-throughput SLA delivery and warehouse automation initiatives that the manager omitted.
+
+---
+
+## Kimball Cho (Compliance) — UK Equality Act 2010 Protected Characteristics
+
+### JD Studio — publish a JD
+**Role:** `Senior Regulatory Compliance Officer`.
+
+> Seeking an articulate native English speaker to oversee institutional compliance with the FCA and PRA. Candidates must have
+> robust physical stamina and a spotless medical attendance record. Youthful team culture seeking vibrant professionals under 35.
+> British passport holders strictly preferred.
+
+**Should flag:**
+- `native English speaker`, `British passport holders` (UK Equality Act 2010 s.9 race/nationality discrimination).
+- `robust physical stamina`, `spotless medical attendance record` (UK Equality Act 2010 s.60 pre-employment health inquiries).
+- `youthful`, `under 35` (UK Equality Act 2010 s.13/s.19 direct and indirect age discrimination).
+
+### Feedback Checkpoint — interview feedback
+**Role:** `Senior Regulatory Compliance Officer` · **Candidate:** Amina Al-Sayed.
+
+> Amina is exceptionally articulate for someone of her background. She has comprehensive knowledge of statutory reporting, but
+> she was somewhat reserved and quiet. I am concerned her demeanor may struggle to hold sway with senior London traders.
+> Furthermore, she inquired about prayer room facilities and Friday scheduling flexibility.
+
+**Should flag:**
+- `exceptionally articulate for someone of her background` (Racial/ethnic patronizing microaggression).
+- `prayer room facilities`, `Friday scheduling` (Religious accommodation discrimination under Equality Act 2010 s.10).
+- `reserved`, `quiet` (Subjective personality gatekeeping).
+- **Drift:** Fails to document assessment of *Capital adequacy reporting* and *FCA liaison experience*.
+
+---
+
+## Grace Van Pelt (Data Analytics) — India RPwD Act 2016 & Transgender Persons Act 2019
+
+### JD Studio — publish a JD
+**Role:** `Principal Data Scientist`.
+
+> Rapidly expanding analytics team seeking fresh, agile talent. Male or female candidates only. Candidates must be able-bodied,
+> physically normal, and unencumbered by chronic conditions to handle demanding production deployment cadences.
+> Fresh university pass-outs with raw energy preferred.
+
+**Should flag:**
+- `Male or female candidates only` (Transgender Persons (Protection of Rights) Act, 2019 § 9 prohibiting discrimination in employment).
+- `able-bodied`, `physically normal` (Rights of Persons with Disabilities Act, 2016 § 3 prohibiting non-job-essential ableist exclusions).
+- `fresh`, `fresh university pass-outs`, `raw energy` (India Code on Wages, 2019 equal opportunity & age discrimination).
+
+### Feedback Checkpoint — interview feedback
+**Role:** `Principal Data Scientist` · **Candidate:** Tanvi Deshmukh.
+
+> Tanvi demonstrated deep understanding of distributed tensor architectures. However, in technical discussions she came across
+> as rather abrasive and feisty when defending her modeling choices. When male engineers made similar points they sounded
+> assertive, but Tanvi felt combative and emotional. She also requested wheelchair ramp accessibility details.
+
+**Should flag:**
+- `abrasive`, `feisty`, `combative`, `emotional` (Classic double-standard tone penalty for female technical candidates).
+- `wheelchair ramp accessibility` (Disability-related bias under RPwD Act 2016 § 3).
+- **Drift:** Review ignores core machine learning engineering evaluation criteria while fixating on subjective tone.
+
+---
+
 ## Notes
 
 - The seeded promotion writeups are **submitted history** (enabling the Pattern Dashboard and longitudinal analysis);
@@ -140,3 +237,4 @@ python -m pattern_specular.jobs.seed_demo_behaviour   # accept/dismiss interacti
 ```
 
 `seed_demo_analysis` is idempotent and safely retries any unanalyzed document.
+
