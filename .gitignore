@@ -43,3 +43,4 @@ docs/*study*
 docs/private/
 *.personal.md
 docs/deck/SLIDE_SPEC.md
+docs/deck/compile_deck.py
