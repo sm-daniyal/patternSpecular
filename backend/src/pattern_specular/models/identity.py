@@ -6,7 +6,7 @@ uniform (to ``users.id``) and one person can hold both roles. ``subjects`` are
 the people documents are *about* (candidates, employees); they do not
 authenticate, and their minimised demographics (D3) are what make the
 per-manager pattern detection possible. Identity and demographics are projected
-from UBS HRIS/ATS; this app is not their system of record.
+from the firm's HRIS/ATS; this app is not their system of record.
 """
 
 import uuid

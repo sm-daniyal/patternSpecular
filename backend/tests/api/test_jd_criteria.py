@@ -1,6 +1,6 @@
 """The JD-criteria endpoints on the /documents router: draft (agent), confirm (write), read.
 
-The extraction agent's Anthropic client is substituted with a fake so these run offline; the
+The extraction agent's LLM client is substituted with a fake so these run offline; the
 draft endpoint persists only an audit row, so the confirm/read round-trip is what proves a
 criterion reaches ``jd_criteria``.
 """

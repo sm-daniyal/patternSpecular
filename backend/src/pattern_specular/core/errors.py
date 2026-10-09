@@ -1,6 +1,6 @@
 """Project exception hierarchy.
 
-Every error raised by pattern-mirror subclasses :class:`PatternSpecularError`, so
+Every error raised by pattern-specular subclasses :class:`PatternSpecularError`, so
 callers can catch the whole family at a boundary (an API handler, the engine
 orchestrator) and map it to a response, while still raising the most specific
 type at the point of failure.
@@ -8,7 +8,7 @@ type at the point of failure.
 
 
 class PatternSpecularError(Exception):
-    """Base class for all pattern-mirror domain errors."""
+    """Base class for all pattern-specular domain errors."""
 
 
 class SeedDataMissingError(PatternSpecularError):

@@ -1,7 +1,7 @@
 """Peer feedback: the reference a promotion writeup's drift check is measured against.
 
 One row per peer submission about an employee, owned by the ``subjects`` row (design spec §8).
-UBS collects this as three free-text fields — strengths, development, overall — mocked as
+The enterprise collects this as three free-text fields — strengths, development, overall — mocked as
 synthetic data for the MVP. Promotion resolves an employee's rows into a single reference text,
 so the drift stage checks a writeup against peer feedback exactly as feedback checks against JD
 criteria: the same engine, a swapped reference corpus.

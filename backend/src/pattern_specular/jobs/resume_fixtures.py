@@ -31,7 +31,7 @@ def render_resume_pdf(*, name: str, subject_type: str) -> bytes:
     """
     lines = [
         name,
-        "Synthetic resume - pattern-mirror demo data",
+        "Synthetic resume - pattern-specular demo data",
         "",
         f"Profile: interview {subject_type} (synthetic)",
         "Experience: 5 years across platform and delivery teams.",
