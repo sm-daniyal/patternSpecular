@@ -7,7 +7,7 @@ This directory contains high-fidelity visual assets, UI screenshots, and diagram
 
 ---
 
-## 📸 Official UI Screenshot Asset Inventory
+##  Official UI Screenshot Asset Inventory
 
 The captured screenshots represent live captures from Pattern Specular running on Neon Serverless PostgreSQL and Google Gemini:
 
@@ -25,7 +25,7 @@ The captured screenshots represent live captures from Pattern Specular running o
 
 ---
 
-## 🎨 Asset Capture Guidelines
+##  Asset Capture Guidelines
 
 1. **Resolution & Scaling:**
    - Format: 24-bit Lossless PNG.
@@ -45,6 +45,6 @@ The captured screenshots represent live captures from Pattern Specular running o
 
 ---
 
-## 🔗 Presentation Deck Ingestion
+##  Presentation Deck Ingestion
 
-Assets stored here are mirrored in [`docs/deck/assets/`](../deck/assets/) and ingested directly by the presentation deck generator specified in [`docs/deck/SLIDE_SPEC.md`](../deck/SLIDE_SPEC.md).
+Assets stored here are mirrored in [`docs/deck/assets/`](../deck/assets/) and ingested directly by the presentation deck generator .
