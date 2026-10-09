@@ -7,47 +7,44 @@ This directory contains high-fidelity visual assets, UI screenshots, and diagram
 
 ---
 
-## 📸 Standard Screenshot Asset Inventory
+## 📸 Official UI Screenshot Asset Inventory
 
-The following 6 screenshot artifacts correspond to the canonical product surfaces and presentation slides outlined in [`docs/deck/SLIDE_SPEC.md`](../deck/SLIDE_SPEC.md):
+The captured screenshots represent live captures from Pattern Specular running on Neon Serverless PostgreSQL and Google Gemini:
 
-| Filename | Surface / View | Dimensions | Description / Primary Visual Focus |
-|---|---|---|---|
-| `06-jd-studio-hero.png` | **JD Studio** | 1920×1080 (PNG) | TipTap real-time editor showing flagged phrases (`young`, `aggressive`, `weekend availability`) with expanded Rosewood citation card citing statutory labor standards. |
-| `06-feedback-checkpoint-inset.png` | **Feedback Checkpoint** | 1200×800 (PNG) | Candidate interview evaluation showing dual-pass phrase detection alongside the **Criteria Drift Check** panel. |
-| `06-promotion-writeup-inset.png` | **Promotion Writeup** | 1200×800 (PNG) | Promotion evaluation showing rubric alignment gaps and the deterministic peer corroboration comparison panel. |
-| `07-pattern-dashboard.png` | **Pattern Dashboard** | 1920×1080 (PNG) | Longitudinal manager dashboard displaying 12-month category trends and Fisher's Exact Test ($p < 0.05$) significance callouts. |
-| `08-hr-trends-dashboard.png` | **HR Trends Portal** | 1920×1080 (PNG) | Firm-wide talent analytics dashboard displaying cross-department metrics with active $k \ge 3$ anonymity suppression. |
-| `08-hr-dictionary-review.png` | **Dictionary Review** | 1920×1080 (PNG) | HR terminology governance queue showcasing pending additions and the autonomous 4-agent LLM debate drawer. |
+| Filename | Surface / View | Description / Primary Visual Focus |
+|---|---|---|
+| `01-jd-studio.png` | **JD Studio** | TipTap real-time editor showing statutory flag popover for "young" citing India's **Code on Wages, 2019** and Singapore **TAFEP**, with rewrite chips and Rosewood action buttons. |
+| `02-feedback-checkpoint.png` | **Feedback Checkpoint** | Interview feedback for candidate Pooja Roy with expanded statutory citation on `family commitments` and observations panel. |
+| `03-promotion-writeup.png` | **Promotion Writeup** | Published promotion evaluation for Nadia Farouk showing `Director — Markets` rubric chips, rubric coverage with `peers agree` indicators, and the static **"WHAT PEERS SAY"** corroboration panel exposing the under-selling gap. |
+| `04-pattern-dashboard.png` | **Pattern Dashboard (Trends)** | Longitudinal manager dashboard displaying monthly flags bar chart, left navigation rail, and the statistically significant **Fisher's Exact Test** card (`family commitment appears in 5 documents — all 5 about women, p = 0.03 < 0.05`). |
+| `04-pattern-dashboard-adoption.png` | **Pattern Dashboard (Decisions)** | Manager behavioural adoption layer displaying monthly revision rate chart (up to 73%) and gender flag resolution rate (`p = 0.03`). |
+| `05-hr-portal.png` | **HR Trends Portal** | Firm-wide talent analytics dashboard displaying 82% language revision rate, monthly flags bar chart, and pending review queue preview with active $k \ge 3$ anonymity notices. |
+| `06-hr-dictionary-review.png` | **Dictionary Review (Debate)** | HR terminology governance queue showcasing the **4-Agent Consensus Debate Modal** for `cultural fit` (proposer, skeptic, categoriser, and cited academic study from 2012). |
+| `07-hr-word-cloud.png` | **Dictionary Review (Word Cloud)** | Interactive categorized word cloud displaying pending bias-coded candidate phrases (`cultural fit`, `work hard play hard`, `high-energy self-starter`, `no family commitments`, `able-bodied`). |
+| `08-login-screen.png` | **Manager Login Portal** | High-design entry card showcasing the Rosewood diamond prism logo (`psLogo`), clean authentication inputs, and cross-portal navigation. |
 
 ---
 
 ## 🎨 Asset Capture Guidelines
 
-When capturing screenshots from the local live environment (`http://localhost:5173/`):
-
 1. **Resolution & Scaling:**
-   - Display scaling should be set to 100% or 200% (Retina).
+   - Format: 24-bit Lossless PNG.
+   - Display scaling: 100% or 200% (Retina).
    - Browser viewport target: 1920×1080 (minimum 1600px width).
-   - Format: 24-bit Lossless PNG. Avoid lossy JPEG compression to preserve text crispness on highlighted editor spans.
 
 2. **Data State & Seeding:**
-   - Ensure the database is primed with demo data:
-     ```bash
-     python -m pattern_specular.jobs.seed_demo
-     python -m pattern_specular.jobs.seed_demo_analysis
-     python -m pattern_specular.jobs.seed_demo_behaviour
-     ```
-   - For Manager views, log in as `demo-manager-1` (`SM Daniyal`).
-   - For HR views, log in as `demo-hr-1` (`Teresa Lisbon`).
+   - Seeded via `pattern_specular.jobs.seed_demo`, `seed_demo_analysis`, and `seed_demo_behaviour`.
+   - Managers: `demo-manager-1` (`SM Daniyal`), `demo-manager-2` (`Areesha Naaz`), `demo-manager-3` (`Patrick Jane`).
+   - HR Reviewer: `demo-hr-1` (`Teresa Lisbon`).
 
 3. **Color & Branding Consistency:**
-   - Verify that the Rosewood primary accent (`#b83a58`) and diamond prism logo (`psLogo`) are rendered in the top-bar.
-   - Manager views must show the privacy banner: *"This is your own data — visible only to you."*
-   - HR views must show the $k \ge 3$ anonymity compliance badge.
+   - Rosewood primary accent (`#b83a58`).
+   - Diamond prism logo (`psLogo`).
+   - Manager privacy reminder: *"This is your own data — visible only to you."*
+   - HR privacy protection: *$k \ge 3$ anonymity enforced by the data model.*
 
 ---
 
-## 🔗 Presentation Deck Symlink / Mirror
+## 🔗 Presentation Deck Ingestion
 
-Assets stored here or in `docs/deck/assets/` are automatically ingested by the automated PDF presentation deck compiler (`docs/deck/compile_deck.py` or ReportLab renderer) specified in [`docs/deck/README.md`](../deck/README.md).
+Assets stored here are mirrored in [`docs/deck/assets/`](../deck/assets/) and ingested directly by the presentation deck generator specified in [`docs/deck/SLIDE_SPEC.md`](../deck/SLIDE_SPEC.md).
