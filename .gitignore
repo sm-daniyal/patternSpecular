@@ -33,3 +33,12 @@ Thumbs.db
 
 # Alembic (keep versions but not pycache)
 **/alembic/__pycache__/
+
+# Personal / Interview Prep / Private Study Guides (local only)
+docs/INTERVIEW_DEFENSE.md
+docs/*INTERVIEW*
+docs/*interview*
+docs/*STUDY*
+docs/*study*
+docs/private/
+*.personal.md
