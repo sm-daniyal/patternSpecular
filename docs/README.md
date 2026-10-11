@@ -16,6 +16,9 @@
 | [CONVENTIONS.md](CONVENTIONS.md) | How we work: folder structure, testing, git, PRs, project management | Contributors |
 | [CODE_STYLE.md](CODE_STYLE.md) | Language-level style rules for Python and TypeScript | Contributors |
 | [adr/](adr/) | Architecture decision records — what was decided, when, and why | Anyone asking "why is it like this?" |
-| [references/](references/) | Source excerpts backing statutory dictionary content | Dictionary curators |
+| [references/](references/) | Statutory legal frameworks (India, Singapore, US, UK) and TAFEP guidance | Dictionary curators & legal compliance |
+| [references/compliance_frameworks.md](references/compliance_frameworks.md) | Multi-jurisdiction statutory legal grounding and GDOR/BFOQ exceptions | Compliance reviewers & legal teams |
+| [demo/](demo/) | Live demonstration playbook and multi-jurisdiction test scenarios | Interviewers & evaluators |
+| [deck/pattern-specular-deck.pdf](deck/pattern-specular-deck.pdf) | 17-slide executive walkthrough presentation deck (16:9 PDF) | Executive reviewers & technical hiring managers |
 
 Architecture docs describe current state and change with the code; ADRs are immutable records of decisions at a point in time. When they disagree, the ADR is history and the architecture doc is the bug.

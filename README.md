@@ -184,8 +184,10 @@ docs/       Design spec, architecture docs, ADRs, conventions
 |---|---|
 | [docs/](docs/README.md) | The full documentation index |
 | [DESIGN_SPEC.md](docs/DESIGN_SPEC.md) | The product design specification |
+| [pattern-specular-deck.pdf](docs/deck/pattern-specular-deck.pdf) | 17-slide executive walkthrough presentation deck (16:9 PDF) |
 | [architecture/overview.md](docs/architecture/overview.md) | Overview of the technical architecture |
 | [architecture/llm-judge.md](docs/architecture/llm-judge.md) | The LLM-as-a-Judge design |
+| [compliance_frameworks.md](docs/references/compliance_frameworks.md) | Multi-jurisdiction statutory legal frameworks (India, SG, US, UK) |
 | [adr/](docs/adr/) | Architecture decision records — what was decided, when, and why |
 | [CONVENTIONS.md](docs/CONVENTIONS.md) | Engineering workflow, testing, git, project management |
 | [CODE_STYLE.md](docs/CODE_STYLE.md) | Language-level style rules for Python and TypeScript |
