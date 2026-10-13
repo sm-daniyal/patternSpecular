@@ -12,7 +12,7 @@ A longitudinal bias-pattern analysis platform for hiring managers: real-time det
 
 ---
 
-> 📊 **Explore the Deck & Live Demo:** A 17-slide visual executive walkthrough and product demo is available in [`docs/deck/pattern-specular-deck.pdf`](docs/deck/pattern-specular-deck.pdf). It covers the full 7-stage engine, manager writing surfaces, HR $k \ge 3$ trends, and 4-agent debate committee with lossless UI captures. Step-by-step interactive demo flow: [`docs/demo/DEMO_FLOW.md`](docs/demo/DEMO_FLOW.md).
+> **Explore the Deck & Live Demo:** A 17-slide visual executive walkthrough and product demo is available in [`docs/deck/pattern-specular-deck.pdf`](docs/deck/pattern-specular-deck.pdf). It covers the full 7-stage engine, manager writing surfaces, HR $k \ge 3$ trends, and 4-agent debate committee with lossless UI captures. Step-by-step interactive demo flow: [`docs/demo/DEMO_FLOW.md`](docs/demo/DEMO_FLOW.md).
 
 ---
 
