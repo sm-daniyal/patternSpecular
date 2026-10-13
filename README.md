@@ -12,6 +12,10 @@ A longitudinal bias-pattern analysis platform for hiring managers: real-time det
 
 ---
 
+> 📊 **Explore the Deck & Live Demo:** A 17-slide visual executive walkthrough and product demo is available in [`docs/deck/pattern-specular-deck.pdf`](docs/deck/pattern-specular-deck.pdf). It covers the full 7-stage engine, manager writing surfaces, HR $k \ge 3$ trends, and 4-agent debate committee with lossless UI captures. Step-by-step interactive demo flow: [`docs/demo/DEMO_FLOW.md`](docs/demo/DEMO_FLOW.md).
+
+---
+
 ## The problem
 
 Bias in hiring and talent management persists in organisations that invest seriously in equity and inclusion. Managers with hiring and promotion authority understand the principles — yet coded language, gendered framing, and shifting evaluation criteria still appear in the documents they produce. A single flagged phrase in isolation is often ambiguous; the tendency only becomes clear across a manager's entire body of writing over time, which no standard tool reviews.
