@@ -1,6 +1,6 @@
 """add 'jd_criteria_drafter' to the agent_name enum
 
-JD Studio's Publish step drafts a role's criteria with a Sonnet 4.6 agent whose invocation is
+JD Studio's Publish step drafts a role's criteria with a Gemini agent whose invocation is
 logged to ``agent_runs`` (#122), so the ``agent_name`` enum gains that agent. Append-only on
 upgrade; the downgrade rebuilds the type without it, first dropping any ``agent_runs`` rows that
 recorded a draft (dev-only audit data).

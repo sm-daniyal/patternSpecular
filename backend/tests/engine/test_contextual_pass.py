@@ -1,6 +1,6 @@
 """The Contextual Pass agent: schema-parsed output, GDOR rulings, provenance mapping, wiring.
 
-The Anthropic call is replaced by a deterministic fake implementing the one method the agent
+The LLM call is replaced by a deterministic fake implementing the one method the agent
 uses, so these run offline and never touch the live API (CONVENTIONS).
 """
 

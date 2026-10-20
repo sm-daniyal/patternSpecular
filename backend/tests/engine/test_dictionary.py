@@ -68,13 +68,13 @@ def test_no_rules_produces_no_flags() -> None:
     assert match_dictionary("Anything at all, even aggressive.", []) == []
 
 
-def test_matching_makes_no_anthropic_call(monkeypatch: pytest.MonkeyPatch) -> None:
-    anthropic = pytest.importorskip("anthropic")
+def test_matching_makes_no_llm_call(monkeypatch: pytest.MonkeyPatch) -> None:
+    genai = pytest.importorskip("google.genai")
 
     def _forbid(*args: object, **kwargs: object) -> None:
         raise AssertionError("Stage 1 must not call the LLM")
 
-    monkeypatch.setattr(anthropic.Anthropic, "__init__", _forbid, raising=False)
+    monkeypatch.setattr(genai.Client, "__init__", _forbid, raising=False)
     rules = [_rule("digital native", category=BiasCategory.age)]
 
     flags = match_dictionary("We seek a digital native.", rules)

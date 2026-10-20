@@ -10,15 +10,15 @@ from pattern_specular.engine.llm_agent import build_instructor_client, estimate_
 
 
 def test_estimate_cost_usd_prices_a_known_model() -> None:
-    # claude-sonnet-4-6: $3/MTok in, $15/MTok out -> (120*3 + 40*15) / 1e6.
-    assert estimate_cost_usd("claude-sonnet-4-6", 120, 40) == Decimal("0.00096")
-    # claude-haiku-4-5: $1/MTok in, $5/MTok out -> (120*1 + 40*5) / 1e6.
-    assert estimate_cost_usd("claude-haiku-4-5", 120, 40) == Decimal("0.00032")
+    # gemini-3.5-flash-lite: $0.05/MTok in, $0.20/MTok out -> (120*0.05 + 40*0.20) / 1e6.
+    assert estimate_cost_usd("gemini-3.5-flash-lite", 120, 40) == Decimal("0.000014")
+    # gemini-2.0-flash: $0.10/MTok in, $0.40/MTok out -> (120*0.10 + 40*0.40) / 1e6.
+    assert estimate_cost_usd("gemini-2.0-flash", 120, 40) == Decimal("0.000028")
 
 
 def test_estimate_cost_usd_is_none_for_unknown_model_or_missing_usage() -> None:
     assert estimate_cost_usd("mystery-model", 100, 50) is None
-    assert estimate_cost_usd("claude-sonnet-4-6", None, 50) is None
+    assert estimate_cost_usd("gemini-3.5-flash-lite", None, 50) is None
 
 
 def _settings(*, GOOGLE_API_KEY: str | None) -> Settings:

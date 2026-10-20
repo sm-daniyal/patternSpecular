@@ -288,7 +288,7 @@ def test_default_graph_verifies_a_seeded_flag_end_to_end(db_session: Session) ->
 
 
 class _FakeJudgeClient:
-    """Returns the same rubric sample for every self-consistency call; no Anthropic call is made."""
+    """Returns the same rubric sample for every self-consistency call; no LLM call is made."""
 
     def __init__(self, sample: JudgeSample) -> None:
         self._sample = sample
@@ -357,7 +357,7 @@ def test_contextual_node_drops_and_logs_a_flag_with_no_citation_floor(
             ]
         )
     )
-    node = _build_contextual_node(db_session, client, "claude-sonnet-4-6")
+    node = _build_contextual_node(db_session, client, "gemini-3.5-flash-lite")
 
     with capture_logs() as logs:
         update = node(state)
@@ -398,7 +398,7 @@ def test_judge_node_scores_contextual_gates_below_threshold_and_passes_dictionar
     client = _FakeJudgeClient(
         JudgeSample(rubrics=[_biased_rubric(1, biased=True), _biased_rubric(2, biased=False)])
     )
-    node = _build_judge_node(db_session, client, "claude-haiku-4-5", _settings(threshold=0.7))
+    node = _build_judge_node(db_session, client, "gemini-3.5-flash-lite", _settings(threshold=0.7))
 
     scores = node(state)["judge_scores"]
 
@@ -415,7 +415,7 @@ def test_judge_node_scores_contextual_gates_below_threshold_and_passes_dictionar
 
 
 class _FakeRecommendationsClient:
-    """Returns a fixed RecommendationsResult and fixed usage; the Anthropic call is never made."""
+    """Returns a fixed RecommendationsResult and fixed usage; the LLM call is never made."""
 
     def __init__(self, result: RecommendationsResult) -> None:
         self._result = result
@@ -428,10 +428,10 @@ class _FakeRecommendationsClient:
 
 
 class _FailingClient:
-    """Raises on the call; stands in for an Anthropic failure the node must absorb."""
+    """Raises on the call; stands in for an LLM failure the node must absorb."""
 
     def create_with_completion(self, **kwargs: Any) -> tuple[Any, Any]:
-        raise RuntimeError("anthropic unavailable")
+        raise RuntimeError("llm unavailable")
 
 
 def _persisted_document_and_run(session: Session) -> tuple[Document, AnalysisRun]:
@@ -479,7 +479,7 @@ def test_recommendations_node_rewrites_unsuppressed_contextual_flags_only(
             ]
         )
     )
-    node = _build_recommendations_node(db_session, client, "claude-sonnet-4-6")
+    node = _build_recommendations_node(db_session, client, "gemini-3.5-flash-lite")
 
     recommendations = node(state)["recommendations"]
 
@@ -511,7 +511,7 @@ def test_recommendations_node_skips_the_agent_when_no_contextual_flag_survives(
         ),
         JudgeScore(flag=_flag("recent graduate"), confidence=0.4, suppressed=True),
     ]
-    node = _build_recommendations_node(db_session, _FailingClient(), "claude-sonnet-4-6")
+    node = _build_recommendations_node(db_session, _FailingClient(), "gemini-3.5-flash-lite")
 
     # The agent would raise if called; an empty result proves it was skipped, not absorbed.
     assert node(state)["recommendations"] == []
@@ -532,7 +532,7 @@ def test_recommendations_node_degrades_when_the_agent_fails(db_session: Session)
     state["judge_scores"] = [
         JudgeScore(flag=_flag("culture fit"), confidence=0.9, suppressed=False)
     ]
-    node = _build_recommendations_node(db_session, _FailingClient(), "claude-sonnet-4-6")
+    node = _build_recommendations_node(db_session, _FailingClient(), "gemini-3.5-flash-lite")
 
     with capture_logs() as logs:
         update = node(state)
@@ -549,7 +549,7 @@ def test_recommendations_node_degrades_when_the_agent_fails(db_session: Session)
 
 
 class _FakeDriftClient:
-    """Returns a fixed DriftResult and fixed usage; the Anthropic call is never made."""
+    """Returns a fixed DriftResult and fixed usage; the LLM call is never made."""
 
     def __init__(self, result: DriftResult) -> None:
         self._result = result
@@ -581,7 +581,7 @@ def test_drift_node_writes_findings_and_logs_the_run(db_session: Session) -> Non
             ]
         )
     )
-    node = _build_drift_node(db_session, client, "claude-sonnet-4-6")
+    node = _build_drift_node(db_session, client, "gemini-3.5-flash-lite")
 
     findings = node(state)["drift_findings"]
 
@@ -603,7 +603,7 @@ def test_drift_node_writes_findings_and_logs_the_run(db_session: Session) -> Non
 @pytest.mark.db
 def test_drift_node_no_ops_without_a_reference(db_session: Session) -> None:
     state = _state("text")
-    node = _build_drift_node(db_session, _FailingClient(), "claude-sonnet-4-6")
+    node = _build_drift_node(db_session, _FailingClient(), "gemini-3.5-flash-lite")
 
     # The agent would raise if called; an empty update proves the no-reference path skipped it.
     assert node(state) == {}
@@ -620,7 +620,7 @@ def test_drift_node_degrades_when_the_agent_fails(db_session: Session) -> None:
     state["document_id"] = document.id
     state["analysis_run_id"] = run.id
     state["drift_reference"] = DriftReference(reference_text="Requires leadership.")
-    node = _build_drift_node(db_session, _FailingClient(), "claude-sonnet-4-6")
+    node = _build_drift_node(db_session, _FailingClient(), "gemini-3.5-flash-lite")
 
     with capture_logs() as logs:
         update = node(state)

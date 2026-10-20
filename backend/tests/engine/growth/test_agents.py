@@ -1,6 +1,6 @@
 """The four growth agents: schema-parsed output, usage, and prompts carrying the candidate.
 
-The Anthropic call is replaced by a deterministic fake implementing the one method the agents
+The LLM call is replaced by a deterministic fake implementing the one method the agents
 use, so these run offline and never touch the live API (CONVENTIONS).
 """
 

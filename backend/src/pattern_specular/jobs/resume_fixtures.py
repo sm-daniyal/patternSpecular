@@ -2,7 +2,7 @@
 
 The MVP resume is a download-only stand-in, so the file only has to be a real, openable PDF —
 not a designed CV. We build a minimal single-page PDF by hand rather than pull in a PDF library,
-keeping the dependency surface flat (CLAUDE.md: ask before adding a top-level dependency). The
+keeping the dependency surface flat (ask before adding a top-level dependency). The
 bytes are written to the blob store at seed time and served verbatim by the resume endpoint.
 """
 

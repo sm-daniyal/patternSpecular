@@ -77,7 +77,7 @@ def review_candidate(
 
     Args:
         session: An open database session; the caller owns the transaction.
-        client: An Instructor-wrapped Anthropic client (or a test fake); the model is chosen
+        client: An Instructor-wrapped LLM client (or a test fake); the model is chosen
             per Agent from ``settings``.
         candidate: The recurring phrase to evaluate, with its example excerpts.
         settings: Source of the per-Agent model choices (ADR 0012).

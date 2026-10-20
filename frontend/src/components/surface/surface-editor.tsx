@@ -285,7 +285,7 @@ export const SurfaceEditor = forwardRef<
 
   return (
     <div
-      onClick={() => editor?.commands.focus()}
+      onClick={() => editor?.commands?.focus?.()}
       onMouseOver={handleHover}
       onFocus={handleHover}
       onMouseLeave={scheduleClose}

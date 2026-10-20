@@ -1,4 +1,4 @@
-"""Stage 4 of the engine: the LLM Judge, an Agent (Claude Haiku 4.5).
+"""Stage 4 of the engine: the LLM Judge, an Agent (Gemini).
 
 N schema-enforced LLM calls (via Instructor), each answering a GDOR rubric for every
 verified contextual flag (ADR-0013). The Judge sees each flag's span with its surrounding

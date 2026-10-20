@@ -1,4 +1,4 @@
-"""The JD-criteria extractor: an Agent (Claude Sonnet 4.6) that drafts a role's criteria.
+"""The JD-criteria extractor: an Agent (Gemini) that drafts a role's criteria.
 
 One schema-enforced LLM call (via Instructor) that reads a job description and proposes
 the distinct criteria a candidate would be assessed against — the reference a feedback note's

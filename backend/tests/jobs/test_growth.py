@@ -1,6 +1,6 @@
 """run_growth_review wires the trigger to the four-agent review and commits the batch.
 
-The trigger runs against real ``flags`` in the test database; the Anthropic calls are faked (one
+The trigger runs against real ``flags`` in the test database; the LLM calls are faked (one
 fake keyed on the requested schema, per CONVENTIONS), so the wiring is exercised offline.
 """
 

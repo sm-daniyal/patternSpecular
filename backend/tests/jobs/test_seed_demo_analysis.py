@@ -82,7 +82,7 @@ def test_is_idempotent_across_runs(db_session: Session) -> None:
 
 
 def test_retries_a_document_whose_only_run_failed(db_session: Session) -> None:
-    # A prior priming attempt errored (e.g. the Anthropic credit balance ran out mid-batch), leaving
+    # A prior priming attempt errored (e.g. the LLM quota ran out mid-batch), leaving
     # a failed run and no flags. The job must re-attempt it, not treat the failed run as done.
     owner = _manager(db_session)
     document = _submitted(db_session, owner, "We want a digital native.")

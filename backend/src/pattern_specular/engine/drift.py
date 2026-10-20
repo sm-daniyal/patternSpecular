@@ -1,4 +1,4 @@
-"""The drift check: an Agent (Claude Sonnet 4.6) that runs alongside the five-stage pipeline.
+"""The drift check: an Agent (Gemini) that runs alongside the five-stage pipeline.
 
 One schema-enforced LLM call (via Instructor) comparing the document under analysis
 against a swappable reference corpus — JD criteria for interview feedback, historical peer

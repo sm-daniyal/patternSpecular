@@ -2,7 +2,7 @@
 
 Runs the recurring-phrase trigger (``services.growth_trigger``) and feeds every candidate through
 the four-agent review (``services.dictionary_growth``), committing the batch once. Run on demand
-(``python -m pattern_specular.jobs.growth``); it makes real Anthropic calls, so it is never part of
+(``python -m pattern_specular.jobs.growth``); it makes real LLM calls, so it is never part of
 CI. Monthly HR approval (#90) turns the queued advances into live dictionary rows.
 """
 
@@ -28,7 +28,7 @@ def run_growth_review(
 
     Args:
         session: An open database session; this function owns the transaction and commits it.
-        client: An Instructor-wrapped Anthropic client (or a test fake) shared by the four agents.
+        client: An Instructor-wrapped LLM client (or a test fake) shared by the four agents.
         settings: Source of the recurrence thresholds and per-agent model choices.
 
     Returns:

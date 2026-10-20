@@ -208,7 +208,7 @@ def test_orm_round_trip_links_the_growth_graph(db_session: Session) -> None:
         AgentName.citation,
     )
     arguments = [
-        AgentRun(agent_name=name, model="claude-mock", input={}, output={}, proposal=proposal)
+        AgentRun(agent_name=name, model="gemini-mock", input={}, output={}, proposal=proposal)
         for name in agent_names
     ]
     queued = PendingDictionaryAddition(

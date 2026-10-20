@@ -71,7 +71,7 @@ class DocumentTypeMismatchError(PatternSpecularError):
 
 
 class LlmClientUnavailableError(PatternSpecularError):
-    """An LLM-backed action was requested but no Anthropic client is configured."""
+    """An LLM-backed action was requested but no LLM client is configured."""
 
     def __init__(self) -> None:
         super().__init__("LLM client is not configured.")

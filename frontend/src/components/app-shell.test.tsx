@@ -64,7 +64,8 @@ describe('AppShell', () => {
     setStoredAuth(AUTH)
     renderShell()
 
-    fireEvent.click(screen.getByTitle('Log out'))
+    fireEvent.click(screen.getByTitle('Profile & Settings'))
+    fireEvent.click(screen.getByText('Sign out'))
 
     await waitFor(() => {
       expect(navigate).toHaveBeenCalledWith({ to: '/login' })

@@ -3,7 +3,7 @@
 The Contextual Pass, Judge, and Recommendations stages each make one schema-enforced
 LLM call; the client contract, pricing table, and cost estimate are identical and
 live here once. Stage modules own only their prompt and schema.
-Supports Google Gemini (via google-genai) and Anthropic Claude.
+Supports Google Gemini (primary, via google-genai).
 """
 
 from decimal import Decimal
@@ -71,7 +71,7 @@ def estimate_cost_usd(
 
 
 def build_instructor_client(settings: Settings) -> StructuredCompletionClient | None:
-    """Build the Instructor-wrapped LLM client (Google Gemini or Anthropic Claude).
+    """Build the Instructor-wrapped LLM client (Google Gemini (primary)).
 
     Network-free: no request is made until ``create_with_completion`` is called. None lets
     the orchestrator degrade an Agent stage to a passthrough.

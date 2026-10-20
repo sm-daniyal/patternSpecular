@@ -1,6 +1,6 @@
 """review_candidate runs the four agents, logs every argument, and gates on 3-of-4.
 
-The Anthropic calls are replaced by a fake keyed on the requested schema, so one fake serves
+The LLM calls are replaced by a fake keyed on the requested schema, so one fake serves
 all four agents offline (CONVENTIONS). Persistence is asserted against the test database.
 """
 

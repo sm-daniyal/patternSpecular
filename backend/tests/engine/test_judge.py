@@ -1,6 +1,6 @@
 """The Judge agent: context extraction, rubric samples, self-consistency, and the gate.
 
-The Anthropic call is replaced by a deterministic fake implementing the one method the agent
+The LLM call is replaced by a deterministic fake implementing the one method the agent
 uses, so these run offline and never touch the live API (CONVENTIONS).
 """
 

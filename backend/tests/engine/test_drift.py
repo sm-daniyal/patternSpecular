@@ -1,6 +1,6 @@
 """The drift agent: schema-parsed output, swappable corpus, verbatim evidence gate.
 
-The Anthropic call is replaced by a deterministic fake implementing the one method the agent
+The LLM call is replaced by a deterministic fake implementing the one method the agent
 uses, so these run offline and never touch the live API (CONVENTIONS).
 """
 

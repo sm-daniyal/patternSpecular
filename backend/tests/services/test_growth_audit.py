@@ -79,7 +79,7 @@ def _record_agents(db_session: Session, proposal_id: uuid.UUID, *, with_citation
         db_session.add(
             AgentRun(
                 agent_name=agent_name,
-                model="claude-test",
+                model="gemini-test",
                 input={"phrase": _PHRASE},
                 output=output,
                 proposal_id=proposal_id,

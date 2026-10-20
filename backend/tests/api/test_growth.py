@@ -110,7 +110,7 @@ def _record_agents(db_session: Session, proposal_id: uuid.UUID) -> None:
         db_session.add(
             AgentRun(
                 agent_name=agent_name,
-                model="claude-test",
+                model="gemini-test",
                 input={"phrase": "a phrase"},
                 output={"reasoning": f"{agent_name.value} argument."},
                 proposal_id=proposal_id,

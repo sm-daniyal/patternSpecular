@@ -34,7 +34,7 @@ def test_persists_a_full_row(db_session: Session) -> None:
     run = record_agent_run(
         db_session,
         agent_name=AgentName.judge,
-        model="claude-haiku-4-5",
+        model="gemini-3.5-flash-lite",
         input={"span": "digital native"},
         output={"confidence": 0.91},
         document_id=document.id,
@@ -50,7 +50,7 @@ def test_persists_a_full_row(db_session: Session) -> None:
     stored = db_session.get(AgentRun, run.id)
     assert stored is not None
     assert stored.agent_name is AgentName.judge
-    assert stored.model == "claude-haiku-4-5"
+    assert stored.model == "gemini-3.5-flash-lite"
     assert stored.document_id == document.id
     assert stored.prompt_tokens == 120
     assert stored.completion_tokens == 8
@@ -62,7 +62,7 @@ def test_optional_fields_default_to_null(db_session: Session) -> None:
     run = record_agent_run(
         db_session,
         agent_name=AgentName.contextual_pass,
-        model="claude-sonnet-4-6",
+        model="gemini-3.5-flash-lite",
         input={"document_text": "We want a digital native."},
         output={"flags": []},
     )
@@ -85,7 +85,7 @@ def test_jsonb_io_round_trips(db_session: Session) -> None:
     run = record_agent_run(
         db_session,
         agent_name=AgentName.recommendations,
-        model="claude-sonnet-4-6",
+        model="gemini-3.5-flash-lite",
         input=nested_input,
         output=nested_output,
     )

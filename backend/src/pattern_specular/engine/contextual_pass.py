@@ -1,4 +1,4 @@
-"""Stage 2 of the engine: the LLM Contextual Pass, an Agent (Claude Sonnet 4.6).
+"""Stage 2 of the engine: the LLM Contextual Pass, an Agent (Gemini).
 
 One schema-enforced LLM call (via Instructor) that reads a document in its role
 context and does two things the deterministic dictionary cannot: it rules each keyword hit

@@ -70,7 +70,7 @@ def draft_jd_criteria(
     Raises:
         DocumentNotFoundError: if the document is absent or owned by another user.
         DocumentTypeMismatchError: if the document is not a job description.
-        LlmClientUnavailableError: if no Anthropic client is configured.
+        LlmClientUnavailableError: if no LLM client is configured.
     """
     _owned_jd(session, document_id, owner_id)
     if client is None:

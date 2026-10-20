@@ -1,4 +1,4 @@
-"""Stage 5 of the engine: the Recommendations Agent (Claude Sonnet 4.6).
+"""Stage 5 of the engine: the Recommendations Agent (Gemini).
 
 One schema-enforced LLM call (via Instructor) that, for each surfaced flag, proposes
 2-3 evidence-anchored alternative phrasings — never a single "correct" answer (design spec

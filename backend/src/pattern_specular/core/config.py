@@ -52,6 +52,7 @@ class Settings(BaseSettings):
     # Google Gemini API key for the LLM Agent stages (Contextual Pass, Judge,
     # Recommendations). Never logged or committed.
     google_api_key: str | None = None
+    # Deprecated: Pattern Specular uses Google Gemini. Retained for backward compatibility.
     anthropic_api_key: str | None = None
 
     # Model for the analysis Agents (the Contextual Pass, Recommendations).
