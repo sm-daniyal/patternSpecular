@@ -4,6 +4,7 @@
 |---|---|---|
 | [DESIGN_SPEC.md](DESIGN_SPEC.md) | The captured product design specification — the product source of truth | Everyone; binding on engine semantics |
 | [architecture/overview.md](architecture/overview.md) | The system as built: statutory boundaries, engine shape, data paths | Anyone reading or reviewing the code |
+| [architecture/learning-guide.md](architecture/learning-guide.md) | Architectural onboarding & engineering deep dive (pipeline mechanics, schema invariants, proofs) | New contributors & technical evaluators |
 | [architecture/llm-judge.md](architecture/llm-judge.md) | The LLM Judge: rubric scoring, self-consistency confidence, calibration | Anyone interested in the LLM-as-judge design |
 | [architecture/flags-and-suppression.md](architecture/flags-and-suppression.md) | Flag identity: lemma signatures, sentence fingerprints, dismissal suppression | Anyone touching flag persistence or dismissals |
 | [architecture/dictionary-growth.md](architecture/dictionary-growth.md) | How the lexicon grows: trigger threshold, four-agent debate, HR approval | Anyone touching the growth loop or dictionary |

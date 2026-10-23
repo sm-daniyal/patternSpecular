@@ -190,6 +190,7 @@ docs/       Design spec, architecture docs, ADRs, conventions
 | [DESIGN_SPEC.md](docs/DESIGN_SPEC.md) | The product design specification |
 | [pattern-specular-deck.pdf](docs/deck/pattern-specular-deck.pdf) | 17-slide executive walkthrough presentation deck (16:9 PDF) |
 | [architecture/overview.md](docs/architecture/overview.md) | Overview of the technical architecture |
+| [architecture/learning-guide.md](docs/architecture/learning-guide.md) | Architectural onboarding & engineering deep dive |
 | [architecture/llm-judge.md](docs/architecture/llm-judge.md) | The LLM-as-a-Judge design |
 | [compliance_frameworks.md](docs/references/compliance_frameworks.md) | Multi-jurisdiction statutory legal frameworks (India, SG, US, UK) |
 | [adr/](docs/adr/) | Architecture decision records — what was decided, when, and why |
