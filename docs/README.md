@@ -20,6 +20,7 @@
 | [references/](references/) | Statutory legal frameworks (India, Singapore, US, UK) and TAFEP guidance | Dictionary curators & legal compliance |
 | [references/compliance_frameworks.md](references/compliance_frameworks.md) | Multi-jurisdiction statutory legal grounding and GDOR/BFOQ exceptions | Compliance reviewers & legal teams |
 | [demo/](demo/) | Live demonstration playbook and multi-jurisdiction test scenarios | Interviewers & evaluators |
+| [assets/](assets/README.md) | High-fidelity UI screenshot inventory and design token assets | Anyone inspecting visual design & assets |
 | [deck/pattern-specular-deck.pdf](deck/pattern-specular-deck.pdf) | 17-slide executive walkthrough presentation deck (16:9 PDF) | Executive reviewers & technical hiring managers |
 
 Architecture docs describe current state and change with the code; ADRs are immutable records of decisions at a point in time. When they disagree, the ADR is history and the architecture doc is the bug.

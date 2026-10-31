@@ -193,6 +193,8 @@ docs/       Design spec, architecture docs, ADRs, conventions
 | [architecture/learning-guide.md](docs/architecture/learning-guide.md) | Architectural onboarding & engineering deep dive |
 | [architecture/llm-judge.md](docs/architecture/llm-judge.md) | The LLM-as-a-Judge design |
 | [compliance_frameworks.md](docs/references/compliance_frameworks.md) | Multi-jurisdiction statutory legal frameworks (India, SG, US, UK) |
+| [demo/DEMO_FLOW.md](docs/demo/DEMO_FLOW.md) | Interactive 10-minute demonstration playbook and evaluation flow |
+| [assets/](docs/assets/README.md) | High-fidelity UI screenshot inventory and design token assets |
 | [adr/](docs/adr/) | Architecture decision records — what was decided, when, and why |
 | [CONVENTIONS.md](docs/CONVENTIONS.md) | Engineering workflow, testing, git, project management |
 | [CODE_STYLE.md](docs/CODE_STYLE.md) | Language-level style rules for Python and TypeScript |
