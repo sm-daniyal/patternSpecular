@@ -12,7 +12,7 @@ A longitudinal bias-pattern analysis platform for hiring managers: real-time det
 
 ---
 
-> **Explore the Deck & Live Demo:** A 17-slide visual executive walkthrough and product demo is available in [`docs/deck/pattern-specular-deck.pdf`](docs/deck/pattern-specular-deck.pdf). It covers the full 7-stage engine, manager writing surfaces, HR $k \ge 3$ trends, and 4-agent debate committee with lossless UI captures. Step-by-step interactive demo flow: [`docs/demo/DEMO_FLOW.md`](docs/demo/DEMO_FLOW.md).
+> 📊 **Explore the Deck & Live Demo:** A 17-slide visual executive walkthrough and product demo is available in [`docs/deck/pattern-specular-deck.pdf`](docs/deck/pattern-specular-deck.pdf). It covers the full 7-stage engine, manager writing surfaces, HR $k \ge 3$ trends, and 4-agent debate committee with lossless UI captures. Step-by-step interactive demo flow: [`docs/demo/DEMO_FLOW.md`](docs/demo/DEMO_FLOW.md).
 
 ---
 
@@ -144,7 +144,7 @@ Aggregated queries over a manager's flag corpus, no LLM involved. A tendency is 
 | AI / agents | Google Gemini — `gemini-2.5-flash` (analysis, recommendations, drift, debate agents), `gemini-3.5-flash-lite` (judge); `google-genai` + Instructor for schema enforcement |
 | Data | Neon Serverless PostgreSQL 16 (SSL / pooled), SQLAlchemy 2.0 typed API, Alembic migrations |
 | Statistics | scipy — Fisher's Exact Test gating pattern surfacing |
-| Quality gates | ruff, mypy --strict, eslint, pytest (240 tests), vitest (251 tests), GitHub Actions CI |
+| Quality gates | ruff, mypy --strict, eslint, pytest (460+ tests), vitest (295 tests), GitHub Actions CI |
 
 ## Getting started
 
