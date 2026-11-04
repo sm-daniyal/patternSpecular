@@ -210,4 +210,4 @@ Pattern Specular is an architectural evolution of **[Pattern Mirror](https://git
 
 ---
 
-Built by [sm-daniyal](https://github.com/sm-daniyal) — sovereign architectural extension of Pattern Mirror's original engine and product concept.
+Built by  [sm-daniyal](https://github.com/sm-daniyal) — sovereign architectural extension of Pattern Mirror's original engine and product concept.
