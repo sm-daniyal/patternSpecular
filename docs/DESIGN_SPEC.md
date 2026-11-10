@@ -105,7 +105,7 @@ The engine is a bounded, named-step flow orchestrated by LangGraph as an explici
 
 **Stage 1 — Dictionary Module.** spaCy (`en_core_web_sm`) lemma matching against the curated multi-jurisdiction statutory lexicon — deterministic, no LLM call. Every hit cites its statutory source or academic reference. This is the Layer 1 latency tier: sub-millisecond response, runs on every keystroke debounce.
 
-**Stage 2 — Contextual Pass Agent.** One schema-enforced Gemini call (`gemini-2.5-flash` via `instructor.from_genai`). Evaluates the full document context around each dictionary hit, catches coded phrases absent from the dictionary, and tags each candidate flag as *general* (dictionary-eligible in future runs) or *role-specific* (LLM-only flag, not a dictionary candidate). Results stream back to the frontend via SSE.
+**Stage 2 — Contextual Pass Agent.** One schema-enforced Gemini call (`gemini-3.5-flash-lite` operational tier / `gemini-2.5-flash` benchmark tier via `instructor.from_genai`). Evaluates the full document context around each dictionary hit, catches coded phrases absent from the dictionary, and tags each candidate flag as *general* (dictionary-eligible in future runs) or *role-specific* (LLM-only flag, not a dictionary candidate). Results stream back to the frontend via SSE.
 
 **Stage 3 — Adjudicator Module.** Deterministic Python — no LLM call. Every span claimed by Stage 2 is verified by literal string match against the source document text. Any LLM-claimed quote that does not exist verbatim in the source is dropped and logged. Hallucinated flags structurally cannot reach the manager.
 
@@ -115,7 +115,7 @@ The engine is a bounded, named-step flow orchestrated by LangGraph as an explici
 
 **Stage 6 — Judge Agent.** Multi-sample consensus gate. Gemini (`gemini-3.5-flash-lite`) re-examines each surviving flag against the document using a fixed rubric, independently, across N runs. Confidence is the fraction of runs that agree the flag is biased. Flags below the confidence threshold (0.70) are terminated here and logged but not surfaced. The Judge's full reasoning and per-run scores are persisted.
 
-**Stage 7 — Recommendations Agent.** `gemini-2.5-flash` with a separate prompt and Instructor-enforced output schema. Generates 2–3 evidence-anchored, jurisdiction-aware neutral rewrites for every flag above the confidence threshold. Only runs on flags the Judge has passed — see Section 7.
+**Stage 7 — Recommendations Agent.** `gemini-3.5-flash-lite` (operational tier) / `gemini-2.5-flash` (benchmark tier) with a separate prompt and Instructor-enforced output schema. Generates 2–3 evidence-anchored, jurisdiction-aware neutral rewrites for every flag above the confidence threshold. Only runs on flags the Judge has passed — see Section 7.
 
 #### The drift-check stage (parallel to bias detection)
 
@@ -275,13 +275,17 @@ Consistent naming across all diagrams and documentation:
 
 ### Model allocation
 
-| Component | Model | Rationale |
-|---|---|---|
-| Contextual Pass | `gemini-2.5-flash` | Full-context evaluation, coded-language detection, GDOR assessment |
-| Judge | `gemini-3.5-flash-lite` | Multi-sample rubric scoring; cost efficiency for N independent runs |
-| Recommendations | `gemini-2.5-flash` | Evidence-anchored rewrite generation; quality over volume |
-| Debate agents (×4) | `gemini-2.5-flash` | Independent reasoning per agent; citation retrieval |
-| Drift check | `gemini-2.5-flash` | Criteria coverage evaluation against reference corpus |
+Pattern Specular uses a two-tier model allocation strategy:
+1. **Operational Tier (`gemini-3.5-flash-lite`)**: Default model configured across all runtime stages (`core/config.py`) to minimize token cost and maintain low response latency (<5s) during interactive typing pause debounces.
+2. **Evaluation & Benchmark Tier (`gemini-2.5-flash`)**: Designated for high-depth offline benchmark evaluations, calibration runs, and rigorous evaluation testing where interactive latency constraints do not apply.
+
+| Component | Default Operational Model | Evaluation / Benchmark Tier | Rationale |
+|---|---|---|---|
+| Contextual Pass | `gemini-3.5-flash-lite` | `gemini-2.5-flash` | Full-context evaluation, coded-language detection, GDOR assessment |
+| Judge | `gemini-3.5-flash-lite` | `gemini-2.5-flash` | Multi-sample rubric scoring; cost efficiency for N independent runs |
+| Recommendations | `gemini-3.5-flash-lite` | `gemini-2.5-flash` | Evidence-anchored rewrite generation |
+| Debate agents (×4) | `gemini-3.5-flash-lite` | `gemini-2.5-flash` | Independent reasoning per agent; citation retrieval |
+| Drift check | `gemini-3.5-flash-lite` | `gemini-2.5-flash` | Criteria coverage evaluation against reference corpus |
 
 Multi-model gateway and provider abstraction are post-MVP. The current implementation uses `google-genai` directly with `instructor.from_genai` for schema enforcement.
 

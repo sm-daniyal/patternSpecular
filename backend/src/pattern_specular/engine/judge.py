@@ -1,4 +1,4 @@
-"""Stage 4 of the engine: the LLM Judge, an Agent (Gemini).
+"""Stage 6 of the engine: the LLM Judge, an Agent (Gemini).
 
 N schema-enforced LLM calls (via Instructor), each answering a GDOR rubric for every
 verified contextual flag (ADR-0013). The Judge sees each flag's span with its surrounding
@@ -43,9 +43,10 @@ _DOC_TYPE_LABELS: dict[DocType, str] = {
 }
 
 _SYSTEM_PROMPT = (
-    "You are an independent reviewer of hiring and promotion bias flags under Singapore's "
-    "TAFEP fair-employment rules. Each flag is a phrase already confirmed to appear verbatim "
-    "in the document; you are given the phrase and its surrounding context, and you answer a "
+    "You are an independent reviewer of hiring and promotion bias flags under statutory "
+    "fair-employment non-discrimination frameworks across supported jurisdictions (including India, "
+    "Singapore, the United States, and the United Kingdom). Each flag is a phrase already confirmed to "
+    "appear verbatim in the document; you are given the phrase and its surrounding context, and you answer a "
     "fixed rubric per flag. You never emit a score. Judge from the context alone, and never "
     "question whether the phrase exists.\n\n"
     "The rubric per flag:\n"

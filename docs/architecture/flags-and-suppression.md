@@ -42,10 +42,12 @@ A flag's identity is `(document_id, rule_id, normalised_span, sentence_fingerpri
 
 ## The sentence fingerprint
 
-The context half of the signature (`engine/fingerprint.py`): take the sentence
-containing the span, lemmatise it with spaCy (`en_core_web_sm`), sort the lemmas
-(a *bag* — order discarded), hash the result. Only a change in content words changes
-the hash:
+The context half of the signature (`engine/fingerprint.py`):
+1. **Sentence Slicing (`slice_sentence`)**: Rather than relying on full spaCy dependency parsing, the containing sentence is extracted deterministically by scanning outward to the nearest sentence terminators (`.!?`) around the flagged span offsets.
+2. **Lemma Bag Extraction**: The sliced sentence text is lemmatised with spaCy (`engine/lemmatiser.py`), producing a sorted bag of lemmas (word order discarded).
+3. **Hashing**: The sorted lemma bag is hashed via SHA-256 to produce the 64-character fingerprint.
+
+Only a change in content words changes the hash:
 
 | The sentence becomes… | Lemma bag | Effect |
 |---|---|---|
@@ -93,9 +95,4 @@ The frontend renders only unsuppressed flags. Three things depend on this:
 
 ## Known limitation
 
-Sentence boundaries come from spaCy's sentence segmentation, so an edit that merges or
-splits sentences shifts the fingerprint and can resurface a dismissed flag even though
-the words around the span didn't change. The recorded fallback, if real edit traces show
-this happening in practice, is a fixed N-token window around the span instead of the
-containing sentence — less semantically clean, more stable under editing. Decision
-deferred until there is data (design spec section 12).
+Sentence boundaries are extracted via explicit `.!?` terminator scanning in `slice_sentence`, so punctuation additions or sentence splits/merges shift the boundary and produce a new fingerprint. This can resurface a previously dismissed flag even if surrounding vocabulary remains similar. The recorded fallback, if real edit traces show this happening in practice, is a fixed N-token window around the span instead of the containing sentence — less semantically clean, more stable under editing. Decision deferred until there is data (design spec section 12).

@@ -9,9 +9,10 @@
 | [architecture/flags-and-suppression.md](architecture/flags-and-suppression.md) | Flag identity: lemma signatures, sentence fingerprints, dismissal suppression | Anyone touching flag persistence or dismissals |
 | [architecture/dictionary-growth.md](architecture/dictionary-growth.md) | How the lexicon grows: trigger threshold, four-agent debate, HR approval | Anyone touching the growth loop or dictionary |
 | [architecture/pattern-significance.md](architecture/pattern-significance.md) | Why a pattern surfaces: Fisher's Exact Test gating on the Pattern Dashboard | Anyone touching the Pattern Dashboard or aggregator |
-| [architecture/data-model.md](architecture/data-model.md) | ER map of the 17 core entities and the columns that earn an explanation | Anyone touching models or migrations |
 | [architecture/india-lexicon-mapping.md](architecture/india-lexicon-mapping.md) | Mapping of Indian labor legislation (Code on Wages, RPwD, Transgender Act) to lexicon categories | Anyone touching IN-jurisdiction dictionary entries |
+| [architecture/data-model.md](architecture/data-model.md) | ER map of the 22 core entities and the columns that earn an explanation | Anyone touching models or migrations |
 | [architecture/api-contracts.md](architecture/api-contracts.md) | REST and SSE endpoint contracts, streaming protocol, and error shapes | Anyone writing or consuming the API |
+| [designs/drift-reconciliation.md](designs/drift-reconciliation.md) | Specification & implementation reconciliation design document | Anyone inspecting system alignment |
 | [future.md](future.md) | Post-MVP design proposals — explicitly not built | Anyone curious where the architecture could go |
 | [project-management.md](project-management.md) | How the project is run: epics, issues, how changes ship | Non-technical readers; anyone curious about delivery |
 | [CONVENTIONS.md](CONVENTIONS.md) | How we work: folder structure, testing, git, PRs, project management | Contributors |

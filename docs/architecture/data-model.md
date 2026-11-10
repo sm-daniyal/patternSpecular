@@ -191,12 +191,25 @@ erDiagram
         jsonb output
         numeric cost_usd
     }
+    PromotionRubricCriterion {
+        uuid id PK
+        string level_label "target level, e.g. L5"
+        text text "one stated promotion criterion"
+        int position "rubric order"
+    }
+    CalibrationRun {
+        uuid id PK
+        float agreement "inter-sample agreement fraction"
+        float ece "expected calibration error"
+        float brier "brier score against gold labels"
+        int scored_count "number of samples evaluated"
+        jsonb per_stage "precision and recall breakdown"
+    }
 ```
 
-Two entities sit outside the graph because nothing references them:
-`PromotionRubricCriterion` (a level's promotion rubric, keyed by `level_label` rather
-than an FK — a drift reference corpus) and `CalibrationRun` (one gold-set measurement:
-agreement, ECE, Brier, per-stage precision/recall — the calibration time series).
+Two entities sit standalone in the relational schema:
+* `PromotionRubricCriterion` (`promotion_rubric_criteria`): Represents standard promotion criteria for level benchmarks. Keyed by `level_label` rather than an explicit FK to allow multiple roles and departments to share standardized level expectations.
+* `CalibrationRun` (`calibration_runs`): Gold-set calibration measurement auditing engine accuracy, ECE, Brier score, and per-stage precision/recall metrics across model iterations without capturing individual manager data.
 
 ## Significant columns
 

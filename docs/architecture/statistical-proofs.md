@@ -24,9 +24,17 @@ The two-tailed $p$-value aggregates the probabilities of all contingency tables 
 
 $$p = \sum_{P(T) \le P(T_{obs})} P(T)$$
 
-Surfacing rule:
+## 4. Surfacing Decision Rule
+
+Unlike large-sample asymptotic approximations (such as Pearson's $\chi^2$ test), Fisher's exact test computes exact combinatorial probabilities directly and is valid across small and sparse sample sizes.
+
+The pattern surfacing rule in `pattern_specular.services.significance` evaluates strictly against the significance threshold ($\alpha = 0.05$):
+
 $$\text{Surfaced} = 
 \begin{cases} 
-\text{True}, & \text{if } p < 0.05 \text{ and } (a + b + c + d) \ge 10 \\ 
+\text{True}, & \text{if } p < \alpha \\ 
 \text{False}, & \text{otherwise} 
 \end{cases}$$
+
+When $n = 0$ (an empty contingency table), $p$ evaluates to $1.0$, automatically suppressing unobserved categories.
+
