@@ -141,7 +141,7 @@ Aggregated queries over a manager's flag corpus, no LLM involved. A tendency is 
 |---|---|
 | Frontend | React 19 + TypeScript, Vite, Tailwind CSS v4, TipTap (ProseMirror), TanStack Router + Query |
 | Backend | Python 3.12, FastAPI, SSE streaming, LangGraph orchestration, Pydantic v2, Structlog |
-| AI / agents | Google Gemini — `gemini-2.5-flash` (analysis, recommendations, drift, debate agents), `gemini-3.5-flash-lite` (judge); `google-genai` + Instructor for schema enforcement |
+| AI / agents | Google Gemini — two-tier architecture: `gemini-3.5-flash-lite` (operational runtime default for sub-5s passes), `gemini-2.5-flash` (benchmark and evaluation tier); `google-genai` + Instructor for schema enforcement |
 | Data | Neon Serverless PostgreSQL 16 (SSL / pooled), SQLAlchemy 2.0 typed API, Alembic migrations |
 | Statistics | scipy — Fisher's Exact Test gating pattern surfacing |
 | Quality gates | ruff, mypy --strict, eslint, pytest (460+ tests), vitest (295 tests), GitHub Actions CI |
@@ -192,7 +192,10 @@ docs/       Design spec, architecture docs, ADRs, conventions
 | [architecture/overview.md](docs/architecture/overview.md) | Overview of the technical architecture |
 | [architecture/learning-guide.md](docs/architecture/learning-guide.md) | Architectural onboarding & engineering deep dive |
 | [architecture/llm-judge.md](docs/architecture/llm-judge.md) | The LLM-as-a-Judge design |
+| [architecture/data-model.md](docs/architecture/data-model.md) | Entity relationship map of all 22 relational models |
+| [architecture/api-contracts.md](docs/architecture/api-contracts.md) | REST and SSE endpoint contracts and event streaming protocol |
 | [compliance_frameworks.md](docs/references/compliance_frameworks.md) | Multi-jurisdiction statutory legal frameworks (India, SG, US, UK) |
+| [drift-reconciliation.md](docs/designs/drift-reconciliation.md) | Technical design & verification for specification drift reconciliation |
 | [demo/DEMO_FLOW.md](docs/demo/DEMO_FLOW.md) | Interactive 10-minute demonstration playbook and evaluation flow |
 | [assets/](docs/assets/README.md) | High-fidelity UI screenshot inventory and design token assets |
 | [adr/](docs/adr/) | Architecture decision records — what was decided, when, and why |
@@ -210,4 +213,4 @@ Pattern Specular is an architectural evolution of **[Pattern Mirror](https://git
 
 ---
 
-Built by  [sm-daniyal](https://github.com/sm-daniyal) — sovereign architectural extension of Pattern Mirror's original engine and product concept.
+Built by [sm-daniyal](https://github.com/sm-daniyal) — sovereign architectural extension of Pattern Mirror's original engine and product concept.
