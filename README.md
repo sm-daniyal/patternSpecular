@@ -9,7 +9,7 @@ A longitudinal bias-pattern analysis platform for hiring managers: real-time det
 ![Google Gemini](https://img.shields.io/badge/Google%20Gemini-2.5%20Flash-4285F4?logo=google&logoColor=white)
 ![PostgreSQL](https://img.shields.io/badge/Neon-PostgreSQL%2016-336791?logo=postgresql&logoColor=white)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-
+[![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/sm-daniyal/patternSpecular)
 ---
 
 > 📊 **Explore the Deck & Live Demo:** A 17-slide visual executive walkthrough and product demo is available in [`docs/deck/pattern-specular-deck.pdf`](docs/deck/pattern-specular-deck.pdf). It covers the full 7-stage engine, manager writing surfaces, HR $k \ge 3$ trends, and 4-agent debate committee with lossless UI captures. Step-by-step interactive demo flow: [`docs/demo/DEMO_FLOW.md`](docs/demo/DEMO_FLOW.md).
